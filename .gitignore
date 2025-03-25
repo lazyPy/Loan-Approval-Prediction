@@ -18,4 +18,4 @@ app/migrations/*
 !app/migrations/__init__.py
 
 # Ignore __pycache__ directories
-__pycache__/
+*/__pycache__/
