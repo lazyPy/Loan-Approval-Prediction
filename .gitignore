@@ -16,3 +16,6 @@ Thumbs.db
 # Project specific
 app/migrations/*
 !app/migrations/__init__.py
+
+# Ignore __pycache__ directories
+__pycache__/
