@@ -1,0 +1,219 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Loan Approval Officer Dashboard</h2>
+    
+    <!-- Active Loans Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Pending Approvals</h3>
+        </div>
+        <div class="card-body">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="activeLoansTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Reference Number</th>
+                                <th>Applicant Name</th>
+                                <th>Date Applied</th>
+                                <th>Credit Risk</th>
+                                <th>Loan Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th>AI Prediction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                                {% if loan.status.status == 'PROCEED_LAO' %}
+                                    <tr>
+                                        <td>{{ loan.loan_id }}</td>
+                                        <td>{{ loan.reference_number }}</td>
+                                        <td>
+                                            {% if loan.personal_info %}
+                                                {{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }}
+                                            {% else %}
+                                                No Name
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ loan.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if loan.credit_investigator_remarks %}
+                                                <span class="badge 
+                                                    {% if loan.credit_investigator_remarks.credit_risk_assessment == 'LOW' %}bg-success
+                                                    {% elif loan.credit_investigator_remarks.credit_risk_assessment == 'MEDIUM' %}bg-warning
+                                                    {% elif loan.credit_investigator_remarks.credit_risk_assessment == 'HIGH' %}bg-danger
+                                                    {% endif %}">
+                                                    {{ loan.credit_investigator_remarks.get_credit_risk_assessment_display }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Assessed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ loan.status.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'loan_approval_officer_loan_details' loan.loan_id %}" class="btn btn-primary btn-sm">Review</a>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-info btn-sm predict-btn" data-loan-id="{{ loan.loan_id }}">
+                                                <i class="fas fa-robot"></i> Predict
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No pending approvals found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Historical Loans Card -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="card-title mb-0">Approval History</h3>
+        </div>
+        <div class="card-body">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="historyLoansTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Reference Number</th>
+                                <th>Applicant Name</th>
+                                <th>Date Applied</th>
+                                <th>Credit Risk</th>
+                                <th>Loan Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th>Decision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                                {% if loan.loan_approval_officer_remarks %}
+                                    <tr>
+                                        <td>{{ loan.loan_id }}</td>
+                                        <td>{{ loan.reference_number }}</td>
+                                        <td>
+                                            {% if loan.personal_info %}
+                                                {{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }}
+                                            {% else %}
+                                                No Name
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ loan.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if loan.credit_investigator_remarks %}
+                                                <span class="badge 
+                                                    {% if loan.credit_investigator_remarks.credit_risk_assessment == 'LOW' %}bg-success
+                                                    {% elif loan.credit_investigator_remarks.credit_risk_assessment == 'MEDIUM' %}bg-warning
+                                                    {% elif loan.credit_investigator_remarks.credit_risk_assessment == 'HIGH' %}bg-danger
+                                                    {% endif %}">
+                                                    {{ loan.credit_investigator_remarks.get_credit_risk_assessment_display }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Assessed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if loan.status.status == 'PROCEED_LDO' %}bg-primary
+                                                {% elif loan.status.status == 'COMPLETED' %}bg-success
+                                                {% elif loan.status.status == 'CANCELLED' or loan.status.status == 'DECLINED' %}bg-danger
+                                                {% else %}bg-secondary
+                                                {% endif %}">
+                                                {{ loan.status.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'loan_approval_officer_loan_details' loan.loan_id %}" class="btn btn-secondary btn-sm">View Details</a>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if loan.loan_approval_officer_remarks.approval_status == 'APPROVED' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {% if loan.loan_approval_officer_remarks.approval_status == 'APPROVED' %}Approved{% else %}Declined{% endif %}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No processed approvals found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Add click event for prediction buttons
+    $('.predict-btn').on('click', function() {
+        const loanId = $(this).data('loan-id');
+        const predictBtn = $(this);
+        
+        // Store original button content
+        const originalContent = predictBtn.html();
+        
+        // Show loading animation in the button with "Predicting..." text
+        predictBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Predicting...');
+        predictBtn.prop('disabled', true);
+        
+        // Make AJAX request to get prediction
+        $.ajax({
+            url: `/loan-approval-officer/predict/${loanId}/`,
+            method: 'GET',
+            success: function(response) {
+                // Get the prediction result
+                const prediction = response.prediction;
+                
+                // Create a badge to replace the button
+                const badgeClass = prediction === 'Approved' ? 'bg-success' : 'bg-danger';
+                const resultBadge = $(`<span class="badge ${badgeClass}">${prediction}</span>`);
+                
+                // Replace the button with the badge
+                predictBtn.replaceWith(resultBadge);
+            },
+            error: function(error) {
+                // Restore the button to its original state
+                predictBtn.html(originalContent);
+                predictBtn.prop('disabled', false);
+                
+                // Show error as an alert
+                alert('Error: ' + (error.responseJSON?.error || 'Failed to get prediction'));
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %} 

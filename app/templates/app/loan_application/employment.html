@@ -1,0 +1,125 @@
+{% extends 'app/loan_application/base_step.html' %}
+
+{% block step_content %}
+    <div class="row">
+        <!-- Employment Status and Source of Funds -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Employment Status</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.employment_status.id_for_label }}" class="form-label">Employment Status *</label>
+                {{ form.employment_status }}
+                <div class="invalid-feedback">{{ form.employment_status.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.source_of_funds.id_for_label }}" class="form-label">Source of Funds *</label>
+                {{ form.source_of_funds }}
+                <div class="invalid-feedback">{{ form.source_of_funds.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Employer Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Employer/Business Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.employer_business_name.id_for_label }}" class="form-label">Employer/Business Name *</label>
+                {{ form.employer_business_name }}
+                <div class="invalid-feedback">{{ form.employer_business_name.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.employer_contact_number.id_for_label }}" class="form-label">Employer Contact Number *</label>
+                {{ form.employer_contact_number }}
+                <div class="invalid-feedback">{{ form.employer_contact_number.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.position.id_for_label }}" class="form-label">Position *</label>
+                {{ form.position }}
+                <div class="invalid-feedback">{{ form.position.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Income Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Income Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.monthly_net_income.id_for_label }}" class="form-label">Monthly Net Income *</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.monthly_net_income }}
+                </div>
+                <div class="invalid-feedback">{{ form.monthly_net_income.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.other_income.id_for_label }}" class="form-label">Other Source of Income</label>
+                {{ form.other_income }}
+                <div class="invalid-feedback">{{ form.other_income.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.other_monthly_income.id_for_label }}" class="form-label">Other Monthly Income</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.other_monthly_income }}
+                </div>
+                <div class="invalid-feedback">{{ form.other_monthly_income.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Business Address</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.employer_business_address.id_for_label }}" class="form-label">Employer/Business Address *</label>
+                {{ form.employer_business_address }}
+                <div class="invalid-feedback">{{ form.employer_business_address.errors }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block step_js %}
+<script>
+    // Add Bootstrap classes to form fields
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+        field.classList.add('form-control');
+    });
+
+    // Add required attribute to required fields
+    document.querySelectorAll('label').forEach(label => {
+        if (label.textContent.includes('*')) {
+            const fieldId = label.getAttribute('for');
+            document.getElementById(fieldId).setAttribute('required', '');
+        }
+    });
+
+    // Format currency inputs
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+    });
+
+    // Show/hide fields based on employment status
+    const employmentStatusField = document.getElementById('{{ form.employment_status.id_for_label }}');
+    const employerFields = document.querySelectorAll('.employer-dependent');
+    
+    if (employmentStatusField) {
+        employmentStatusField.addEventListener('change', function() {
+            const isUnemployed = this.value === 'Unemployed' || this.value === 'Student';
+            employerFields.forEach(field => {
+                field.style.display = isUnemployed ? 'none' : 'block';
+                const inputs = field.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (isUnemployed) {
+                        input.removeAttribute('required');
+                    } else {
+                        if (input.closest('.form-group').querySelector('label').textContent.includes('*')) {
+                            input.setAttribute('required', '');
+                        }
+                    }
+                });
+            });
+        });
+    }
+</script>
+{% endblock %} 

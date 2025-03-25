@@ -1,0 +1,30 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Check Loan Status</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Enter your reference number to check the status of your loan application.</p>
+                    
+                    <form method="post" action="{% url 'check_status' %}">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="reference_number" class="form-label">Reference Number *</label>
+                            <input type="text" class="form-control" id="reference_number" name="reference_number" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Check Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

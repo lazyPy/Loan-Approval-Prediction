@@ -1,0 +1,277 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}User Accounts - System Administrator{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white border-bottom border-2">
+                    <h5 class="card-title mb-0">Admin Menu</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'admin_dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        <a href="{% url 'user_list' %}" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-users me-2"></i> User Management
+                        </a>
+                        <a href="{% url 'interest_rate_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-percentage me-2"></i> Interest Rate Management
+                        </a>
+                        <a href="{% url 'loan_quota_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line me-2"></i> Loan Quota Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white border-bottom border-2 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">User Account List</h5>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="fas fa-user-plus"></i> Create New User
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Position</th>
+                                    <th>Contact Number</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>
+                                        {% if user.first_name and user.last_name %}
+                                            {{ user.first_name }} {{ user.last_name }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.user_account %}
+                                            {{ user.user_account.get_position_display }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.user_account %}
+                                            {{ user.user_account.contact_number }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ user.id }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Edit Modal -->
+                                        <div class="modal fade" id="editModal{{ user.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ user.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-primary text-white">
+                                                        <h5 class="modal-title" id="editModalLabel{{ user.id }}">Edit User: {{ user.username }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" action="{% url 'user_update' user.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <div class="row mb-3">
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label">Username</label>
+                                                                    <input type="text" class="form-control" name="username" value="{{ user.username }}" readonly>
+                                                                    <div class="form-text">Username cannot be changed</div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label">Email</label>
+                                                                    <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="row mb-3">
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label">First Name</label>
+                                                                    <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}" required>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label">Last Name</label>
+                                                                    <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}" required>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="row mb-3">
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label">Position</label>
+                                                                    <select class="form-select" name="position" required>
+                                                                        <option value="MARKETING" {% if user.user_account and user.user_account.position == 'MARKETING' %}selected{% endif %}>Marketing Officer</option>
+                                                                        <option value="CREDIT" {% if user.user_account and user.user_account.position == 'CREDIT' %}selected{% endif %}>Credit Investigator</option>
+                                                                        <option value="APPROVAL" {% if user.user_account and user.user_account.position == 'APPROVAL' %}selected{% endif %}>Loan Approval Officer</option>
+                                                                        <option value="DISBURSEMENT" {% if user.user_account and user.user_account.position == 'DISBURSEMENT' %}selected{% endif %}>Loan Disbursement Officer</option>
+                                                                        <option value="BRANCH" {% if user.user_account and user.user_account.position == 'BRANCH' %}selected{% endif %}>Branch Manager</option>
+                                                                        <option value="AREA" {% if user.user_account and user.user_account.position == 'AREA' %}selected{% endif %}>Area Manager</option>
+                                                                        <option value="ADMIN" {% if user.user_account and user.user_account.position == 'ADMIN' %}selected{% endif %}>System Administrator</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label">Contact Number</label>
+                                                                    <input type="text" class="form-control" name="contact_number" value="{% if user.user_account %}{{ user.user_account.contact_number }}{% endif %}" required>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Address</label>
+                                                                <textarea class="form-control" name="address" rows="3" required>{% if user.user_account %}{{ user.user_account.address }}{% endif %}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ user.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-danger text-white">
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ user.id }}">Delete User: {{ user.username }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" action="{% url 'user_delete' user.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <div class="alert alert-warning">
+                                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                This action cannot be undone!
+                                                            </div>
+                                                            <p>Are you sure you want to delete user <strong>{{ user.username }}</strong>?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No users found.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'user_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" name="first_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="last_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" name="password2" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Position</label>
+                            <select class="form-select" name="position" required>
+                                <option value="">-- Select Position --</option>
+                                <option value="MARKETING">Marketing Officer</option>
+                                <option value="CREDIT">Credit Investigator</option>
+                                <option value="APPROVAL">Loan Approval Officer</option>
+                                <option value="DISBURSEMENT">Loan Disbursement Officer</option>
+                                <option value="BRANCH">Branch Manager</option>
+                                <option value="AREA">Area Manager</option>
+                                <option value="ADMIN">System Administrator</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" class="form-control" name="contact_number" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea class="form-control" name="address" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,144 @@
+{% extends 'app/loan_application/base_step.html' %}
+
+{% block step_content %}
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Personal Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name *</label>
+                {{ form.first_name }}
+                <div class="invalid-feedback">{{ form.first_name.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.middle_name.id_for_label }}" class="form-label">Middle Name</label>
+                {{ form.middle_name }}
+                <div class="invalid-feedback">{{ form.middle_name.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name *</label>
+                {{ form.last_name }}
+                <div class="invalid-feedback">{{ form.last_name.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.relation_to_borrower.id_for_label }}" class="form-label">Relationship to Borrower *</label>
+                {{ form.relation_to_borrower }}
+                <div class="invalid-feedback">{{ form.relation_to_borrower.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Additional Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.civil_status.id_for_label }}" class="form-label">Civil Status *</label>
+                {{ form.civil_status }}
+                <div class="invalid-feedback">{{ form.civil_status.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth *</label>
+                {{ form.date_of_birth }}
+                <div class="invalid-feedback">{{ form.date_of_birth.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.education.id_for_label }}" class="form-label">Education Level *</label>
+                {{ form.education }}
+                <div class="invalid-feedback">{{ form.education.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Employment and Income -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Employment Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.employer_business_name.id_for_label }}" class="form-label">Employer/Business Name *</label>
+                {{ form.employer_business_name }}
+                <div class="invalid-feedback">{{ form.employer_business_name.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.employer_contact_number.id_for_label }}" class="form-label">Employer Contact Number *</label>
+                {{ form.employer_contact_number }}
+                <div class="invalid-feedback">{{ form.employer_contact_number.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Income Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Income Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.net_income.id_for_label }}" class="form-label">Monthly Net Income *</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.net_income }}
+                </div>
+                <div class="invalid-feedback">{{ form.net_income.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.other_income.id_for_label }}" class="form-label">Other Source of Income</label>
+                {{ form.other_income }}
+                <div class="invalid-feedback">{{ form.other_income.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.other_monthly_income.id_for_label }}" class="form-label">Other Monthly Income</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.other_monthly_income }}
+                </div>
+                <div class="invalid-feedback">{{ form.other_monthly_income.errors }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block step_js %}
+<script>
+    // Add Bootstrap classes to form fields
+    document.querySelectorAll('input, select').forEach(field => {
+        field.classList.add('form-control');
+    });
+
+    // Add required attribute to required fields
+    document.querySelectorAll('label').forEach(label => {
+        if (label.textContent.includes('*')) {
+            const fieldId = label.getAttribute('for');
+            document.getElementById(fieldId).setAttribute('required', '');
+        }
+    });
+
+    // Validate date of birth
+    const dateOfBirthField = document.getElementById('{{ form.date_of_birth.id_for_label }}');
+    
+    dateOfBirthField.addEventListener('change', function() {
+        const dateOfBirth = new Date(this.value);
+        const today = new Date();
+        
+        // Calculate age
+        let age = today.getFullYear() - dateOfBirth.getFullYear();
+        const m = today.getMonth() - dateOfBirth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
+            age--;
+        }
+        
+        // Check if birth date is valid
+        if (dateOfBirth > today) {
+            this.setCustomValidity('Birth date cannot be in the future');
+        }
+        // Check if age is at least 18
+        else if (age < 18) {
+            this.setCustomValidity('Must be at least 18 years old');
+        }
+        else {
+            this.setCustomValidity('');
+        }
+    });
+
+    // Format currency inputs
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+    });
+</script>
+{% endblock %} 

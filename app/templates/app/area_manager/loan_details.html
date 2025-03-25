@@ -1,0 +1,451 @@
+{% extends 'app/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Loan Details - Area Manager{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Loan Details</h2>
+        <a href="{% url 'area_manager_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Borrower Information Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Borrower Information</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Personal Details</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Loan ID:</th>
+                                <td>{{ loan.loan_id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Full Name:</th>
+                                <td>{{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }} {{ loan.personal_info.middle_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Gender:</th>
+                                <td>{{ loan.personal_info.get_gender_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Age:</th>
+                                <td>{{ loan.personal_info.age }}</td>
+                            </tr>
+                            <tr>
+                                <th>Civil Status:</th>
+                                <td>{{ loan.personal_info.get_civil_status_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Property Area:</th>
+                                <td>{{ loan.personal_info.property_area }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Contact & Employment</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Contact Number:</th>
+                                <td>{{ loan.contact_info.contact_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ loan.contact_info.email_address }}</td>
+                            </tr>
+                            <tr>
+                                <th>Employment Status:</th>
+                                <td>{{ loan.employment.get_employment_status_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Employer:</th>
+                                <td>{{ loan.employment.employer_business_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Monthly Income:</th>
+                                <td>₱{{ loan.employment.monthly_net_income|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <th>Education:</th>
+                                <td>{{ loan.education.get_education_display }} - {{ loan.education.course }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loan Details Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h3 class="card-title mb-0">Loan Information</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Loan Details</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Loan Type:</th>
+                                <td>{{ loan.loan_details.get_loan_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Vehicle Value:</th>
+                                <td>₱{{ loan.loan_details.estimated_vehicle_value|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <th>Down Payment:</th>
+                                <td>{{ loan.loan_details.down_payment_percentage|floatformat:0 }}%</td>
+                            </tr>
+                            <tr>
+                                <th>Loan Amount:</th>
+                                <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <th>Term:</th>
+                                <td>{{ loan.loan_details.loan_amount_term }} months</td>
+                            </tr>
+                            <tr>
+                                <th>Interest Rate:</th>
+                                <td>{{ current_interest_rate|floatformat:2 }}%</td>
+                            </tr>
+                            <tr>
+                                <th>Monthly Amortization:</th>
+                                <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <th>Loan Purpose:</th>
+                                <td>{{ loan.loan_details.get_loan_purpose_display }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Vehicle Information</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Make/Brand:</th>
+                                <td>{{ loan.vehicle.make_brand }}</td>
+                            </tr>
+                            <tr>
+                                <th>Series/Model:</th>
+                                <td>{{ loan.vehicle.series }} ({{ loan.vehicle.year_model }})</td>
+                            </tr>
+                            <tr>
+                                <th>Variant:</th>
+                                <td>{{ loan.vehicle.variant }}</td>
+                            </tr>
+                            <tr>
+                                <th>Color:</th>
+                                <td>{{ loan.vehicle.color }}</td>
+                            </tr>
+                            <tr>
+                                <th>Transmission:</th>
+                                <td>{{ loan.vehicle.get_transmission_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Fuel Type:</th>
+                                <td>{{ loan.vehicle.get_fuel_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Dealer:</th>
+                                <td>{{ loan.vehicle.dealer_name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Financial Analysis -->
+            <div class="mt-4">
+                <h4>Financial Analysis</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Monthly Cash Flow</th>
+                                    <th>Amount (₱)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Applicant's Income</td>
+                                    <td>{{ loan.cash_flow.applicant_total_income|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Spouse's Income</td>
+                                    <td>{{ loan.cash_flow.spouse_total_income|floatformat:2 }}</td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <th>Total Income</th>
+                                    <th>{{ loan.cash_flow.total_income|floatformat:2 }}</th>
+                                </tr>
+                                <tr>
+                                    <td>Total Expenses</td>
+                                    <td>{{ loan.cash_flow.total_expenses|floatformat:2 }}</td>
+                                </tr>
+                                <tr class="table-success">
+                                    <th>Net Disposal (70%)</th>
+                                    <th>{{ loan.cash_flow.net_disposal|floatformat:2 }}</th>
+                                </tr>
+                                <tr>
+                                    <td>Monthly Amortization</td>
+                                    <td>{{ loan.loan_details.monthly_amortization|floatformat:2 }}</td>
+                                </tr>
+                                <tr class="{% if dti_ratio <= 0.36 %}table-success{% elif dti_ratio <= 0.43 %}table-warning{% else %}table-danger{% endif %}">
+                                    <th>DTI Ratio</th>
+                                    <th>{{ dti_ratio|floatformat:2 }} {% if dti_ratio <= 0.36 %}(Good){% elif dti_ratio <= 0.43 %}(Acceptable){% else %}(High){% endif %}</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Loan Amortization</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if loan.loan_details %}
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Period</th>
+                                                <th>Principal</th>
+                                                <th>Interest</th>
+                                                <th>Monthly Payment</th>
+                                                <th>Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% with loan_amount=loan.loan_details.loan_amount_applied interest_rate=current_interest_rate term=loan.loan_details.loan_amount_term payment=loan.loan_details.monthly_amortization %}
+                                                {% for i in "12345" %}
+                                                    {% with period=forloop.counter %}
+                                                        <tr>
+                                                            <td>{{ period }}</td>
+                                                            {% with interest=loan_amount|mul:interest_rate|div:1200 %}
+                                                                {% with principal=payment|sub:interest %}
+                                                                    <td>₱{{ principal|floatformat:2 }}</td>
+                                                                    <td>₱{{ interest|floatformat:2 }}</td>
+                                                                    <td>₱{{ payment|floatformat:2 }}</td>
+                                                                    {% with balance=loan_amount|sub:principal|mul:period %}
+                                                                        <td>₱{{ balance|floatformat:2 }}</td>
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            {% endwith %}
+                                                        </tr>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="table-info">
+                                                <th>Summary</th>
+                                                <td colspan="4">
+                                                    <small>
+                                                        Loan Amount: ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }} |
+                                                        Interest Rate: {{ current_interest_rate|default:"10.00"|floatformat:2 }}% |
+                                                        Term: {{ loan.loan_details.loan_amount_term }} months |
+                                                        Monthly Payment: ₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    <div class="text-center">
+                                        <p class="small text-muted mb-0">Showing first 5 periods only</p>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">Loan details not available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marketing & Disbursement Information -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title mb-0">Marketing Information</h3>
+                </div>
+                <div class="card-body">
+                    {% if loan.marketing %}
+                    <table class="table">
+                        <tr>
+                            <th width="40%">Marketing Source:</th>
+                            <td>{{ loan.marketing.get_marketing_source_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Sales Representative:</th>
+                            <td>{{ loan.marketing.sales_representative }}</td>
+                        </tr>
+                    </table>
+                    {% else %}
+                    <div class="alert alert-info">No marketing information available.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+                
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="card-title mb-0">Disbursement Information</h3>
+                </div>
+                <div class="card-body">
+                    {% if loan.loan_disbursement_officer_remarks %}
+                    <table class="table">
+                        <tr>
+                            <th width="40%">Disbursement Date:</th>
+                            <td>{{ loan.loan_disbursement_officer_remarks.disbursement_date|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Disbursement Amount:</th>
+                            <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge {% if loan.loan_disbursement_officer_remarks.status == 'COMPLETED' %}bg-success
+                                    {% elif loan.loan_disbursement_officer_remarks.status == 'HOLD' %}bg-warning
+                                    {% elif loan.loan_disbursement_officer_remarks.status == 'CANCELLED' %}bg-danger{% endif %}">
+                                    {{ loan.loan_disbursement_officer_remarks.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Remarks:</th>
+                            <td>{{ loan.loan_disbursement_officer_remarks.remarks }}</td>
+                        </tr>
+                        <tr>
+                            <th>Processed By:</th>
+                            <td>{{ loan.loan_disbursement_officer_remarks.loan_disbursement_officer_name }}</td>
+                        </tr>
+                    </table>
+                    {% else %}
+                    <div class="alert alert-info">No disbursement information available yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loan Status History -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="card-title mb-0">Loan Status History</h3>
+        </div>
+        <div class="card-body">
+            <div class="loan-status-timeline">
+                <div class="d-flex justify-content-between position-relative status-progress-bar">
+                    <div class="progress" style="width: 100%; height: 3px; position: absolute; top: 15px; z-index: 1;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ status_percentage }}%;"></div>
+                    </div>
+                    
+                    <div class="status-step text-center position-relative" style="z-index: 2;">
+                        <div class="status-icon rounded-circle 
+                            {% if loan.status.status == 'PENDING' or loan.status.status == 'PROCEED_CI' or loan.status.status == 'PROCEED_LAO' or loan.status.status == 'PROCEED_LDO' or loan.status.status == 'COMPLETED' %}
+                                bg-success text-white
+                            {% else %}
+                                bg-light text-muted
+                            {% endif %}">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="mt-2">Application</div>
+                        <div class="small text-muted">
+                            {{ loan.created_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    
+                    <div class="status-step text-center position-relative" style="z-index: 2;">
+                        <div class="status-icon rounded-circle 
+                            {% if loan.status.status == 'PROCEED_CI' or loan.status.status == 'PROCEED_LAO' or loan.status.status == 'PROCEED_LDO' or loan.status.status == 'COMPLETED' %}
+                                bg-success text-white
+                            {% else %}
+                                bg-light text-muted
+                            {% endif %}">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="mt-2">Credit Investigator</div>
+                        <div class="small text-muted">
+                            {% if loan.credit_investigator_remarks %}
+                                {{ loan.credit_investigator_remarks.created_at|date:"M d, Y" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="status-step text-center position-relative" style="z-index: 2;">
+                        <div class="status-icon rounded-circle 
+                            {% if loan.status.status == 'PROCEED_LAO' or loan.status.status == 'PROCEED_LDO' or loan.status.status == 'COMPLETED' %}
+                                bg-success text-white
+                            {% else %}
+                                bg-light text-muted
+                            {% endif %}">
+                            <i class="fas fa-thumbs-up"></i>
+                        </div>
+                        <div class="mt-2">Approval</div>
+                        <div class="small text-muted">
+                            {% if loan.loan_approval_officer_remarks %}
+                                {{ loan.loan_approval_officer_remarks.created_at|date:"M d, Y" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="status-step text-center position-relative" style="z-index: 2;">
+                        <div class="status-icon rounded-circle 
+                            {% if loan.status.status == 'COMPLETED' %}
+                                bg-success text-white
+                            {% else %}
+                                bg-light text-muted
+                            {% endif %}">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="mt-2">Disbursement</div>
+                        <div class="small text-muted">
+                            {% if loan.loan_disbursement_officer_remarks %}
+                                {{ loan.loan_disbursement_officer_remarks.created_at|date:"M d, Y" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    .status-progress-bar {
+        margin: 0 40px;
+    }
+    
+    .status-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .status-step {
+        flex: 1;
+    }
+</style>
+{% endblock %}
+{% endblock %} 

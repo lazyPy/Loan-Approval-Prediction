@@ -1,0 +1,528 @@
+{% extends 'app/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Loan Approval Review</h2>
+        <a href="{% url 'loan_approval_officer_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <div class="row">
+        <!-- Left Column: Applicant Information -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Applicant Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Basic Information</h4>
+                            <table class="table">
+                                <tr>
+                                    <th>Loan ID:</th>
+                                    <td>{{ loan.loan_id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Reference Number:</th>
+                                    <td>{{ loan.reference_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date Applied:</th>
+                                    <td>{{ loan.created_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge 
+                                            {% if loan.status.status == 'PENDING' %}bg-warning
+                                            {% elif loan.status.status == 'PROCEED_CI' %}bg-info
+                                            {% elif loan.status.status == 'PROCEED_LAO' %}bg-primary
+                                            {% elif loan.status.status == 'PROCEED_LDO' %}bg-primary
+                                            {% elif loan.status.status == 'COMPLETED' %}bg-success
+                                            {% elif loan.status.status == 'HOLD' %}bg-secondary
+                                            {% elif loan.status.status == 'CANCELLED' or loan.status.status == 'DECLINED' %}bg-danger
+                                            {% endif %}">
+                                            {{ loan.status.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {% if loan.personal_info %}
+                                <h4>Personal Information</h4>
+                                <table class="table">
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>{{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }} {{ loan.personal_info.middle_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Gender:</th>
+                                        <td>{{ loan.personal_info.get_gender_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Birth:</th>
+                                        <td>{{ loan.personal_info.date_of_birth|date:"F d, Y" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Age:</th>
+                                        <td>{{ loan.personal_info.age }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Civil Status:</th>
+                                        <td>{{ loan.personal_info.get_civil_status_display }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No personal information available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            {% if loan.contact_info %}
+                                <h4>Contact Information</h4>
+                                <table class="table">
+                                    <tr>
+                                        <th>Contact Number:</th>
+                                        <td>{{ loan.contact_info.contact_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>{{ loan.contact_info.email_address }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address:</th>
+                                        <td>{{ loan.contact_info.no_and_street }}, {{ loan.contact_info.barangay }}, {{ loan.contact_info.municipality }}, {{ loan.contact_info.province }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No contact information available.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {% if loan.employment %}
+                                <h4>Employment Information</h4>
+                                <table class="table">
+                                    <tr>
+                                        <th>Employment Status:</th>
+                                        <td>{{ loan.employment.get_employment_status_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Employer/Business:</th>
+                                        <td>{{ loan.employment.employer_business_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Position:</th>
+                                        <td>{{ loan.employment.position }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Monthly Income:</th>
+                                        <td>₱{{ loan.employment.monthly_net_income|floatformat:2 }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No employment information available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            {% if loan.loan_details %}
+                                <h4>Loan Details</h4>
+                                <table class="table">
+                                    <tr>
+                                        <th>Loan Type:</th>
+                                        <td>{{ loan.loan_details.get_loan_type_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Loan Purpose:</th>
+                                        <td>{{ loan.loan_details.get_loan_purpose_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Vehicle Value:</th>
+                                        <td>₱{{ loan.loan_details.estimated_vehicle_value|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Down Payment:</th>
+                                        <td>{{ loan.loan_details.down_payment_percentage|mul:100|floatformat:2 }}% (₱{{ loan.loan_details.estimated_vehicle_value|mul:loan.loan_details.down_payment_percentage|floatformat:2 }})</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Loan Amount:</th>
+                                        <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Term:</th>
+                                        <td>{{ loan.loan_details.loan_amount_term }} months</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No loan details available.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {% if loan.documents %}
+                                <h4>Documents</h4>
+                                <table class="table">
+                                    <tr>
+                                        <th>Valid ID:</th>
+                                        <td>
+                                            {% if loan.documents.valid_id %}
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#validIdModal">
+                                                    View
+                                                </button>
+                                            {% else %}
+                                                Not uploaded
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Proof of Income:</th>
+                                        <td>
+                                            {% if loan.documents.proof_of_income %}
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#proofOfIncomeModal">
+                                                    View
+                                                </button>
+                                            {% else %}
+                                                Not uploaded
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Utility Bill:</th>
+                                        <td>
+                                            {% if loan.documents.utility_bill %}
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#utilityBillModal">
+                                                    View
+                                                </button>
+                                            {% else %}
+                                                Not uploaded
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No documents available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if loan.cash_flow %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h4>Monthly Cash Flow</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Income</h5>
+                                    <table class="table">
+                                        <tr>
+                                            <th>Applicant Income:</th>
+                                            <td>₱{{ loan.cash_flow.applicant_total_income|floatformat:2 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Spouse Income:</th>
+                                            <td>₱{{ loan.cash_flow.spouse_total_income|floatformat:2 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Income:</th>
+                                            <td>₱{{ loan.cash_flow.total_income|floatformat:2 }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Expenses</h5>
+                                    <table class="table">
+                                        <tr>
+                                            <th>Total Expenses:</th>
+                                            <td>₱{{ loan.cash_flow.total_expenses|floatformat:2 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Net Disposal:</th>
+                                            <td>₱{{ loan.cash_flow.net_disposal|floatformat:2 }}</td>
+                                        </tr>
+                                        {% if loan.loan_details %}
+                                            <tr>
+                                                <th>Monthly Payment:</th>
+                                                <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {% if loan_amortization %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="card-title mb-0">Loan Amortization</h3>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <tr>
+                                        <th>Loan Amount:</th>
+                                        <td>₱{{ loan_amortization.loan_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Interest Rate:</th>
+                                        <td>{{ loan_amortization.interest_rate|floatformat:2 }}%</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Term:</th>
+                                        <td>{{ loan_amortization.term_months }} months</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Monthly Payment:</th>
+                                        <td>₱{{ loan_amortization.monthly_payment|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Payment:</th>
+                                        <td>₱{{ loan_amortization.total_payment|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Interest:</th>
+                                        <td>₱{{ loan_amortization.total_interest|floatformat:2 }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    {% if dti_ratio %}
+                        <div class="card mb-4">
+                            <div class="card-header {% if dti_ratio <= 30 %}bg-success{% elif dti_ratio <= 40 %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                                <h3 class="card-title mb-0">Debt-to-Income Ratio</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center">
+                                    <h1 class="display-4">{{ dti_ratio|floatformat:2 }}%</h1>
+                                    <p class="lead">
+                                        {% if dti_ratio <= 30 %}
+                                            <span class="text-success">Good</span> - Debt payments are manageable relative to income.
+                                        {% elif dti_ratio <= 40 %}
+                                            <span class="text-warning">Caution</span> - Debt payments are significant relative to income.
+                                        {% else %}
+                                            <span class="text-danger">High Risk</span> - Debt payments are too high relative to income.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Loan Approval Assessment -->
+        <div class="col-md-4">
+            {% if prediction_result %}
+                <div class="card mb-4">
+                    <div class="card-header {% if prediction_result == 'Approved' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                        <h3 class="card-title mb-0">AI Prediction</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <h2 class="display-5 {% if prediction_result == 'Approved' %}text-success{% else %}text-danger{% endif %}">
+                            {{ prediction_result }}
+                        </h2>
+                        {% if prediction_probability %}
+                            <p class="lead">Confidence: {{ prediction_probability|floatformat:2 }}%</p>
+                        {% endif %}
+                        <p class="mt-3">
+                            <strong>Note:</strong> This is an AI-generated recommendation based on historical data and should be used as a guide only. Final decision should be made by the loan approval officer.
+                        </p>
+                    </div>
+                </div>
+            
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Loan Approval Decision</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="form-group mb-3">
+                                <label for="{{ form.approval_status.id_for_label }}" class="form-label">Approval Decision *</label>
+                                {{ form.approval_status }}
+                                {% if form.approval_status.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.approval_status.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="{{ form.remarks.id_for_label }}" class="form-label">Remarks *</label>
+                                <textarea name="{{ form.remarks.name }}" id="{{ form.remarks.id_for_label }}" class="form-control" rows="3">{{ form.remarks.value|default:'' }}</textarea>
+                                {% if form.remarks.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.remarks.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Save Decision</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title mb-0">Credit Investigator Assessment</h3>
+                </div>
+                <div class="card-body">
+                    {% if loan.credit_investigator_remarks %}
+                        <table class="table">
+                            <tr>
+                                <th>Investigator Name:</th>
+                                <td>{{ loan.credit_investigator_remarks.credit_investigator_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Documents Verified:</th>
+                                <td>
+                                    <span class="badge {% if loan.credit_investigator_remarks.verified == 'YES' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ loan.credit_investigator_remarks.get_verified_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Suspicious Indicator:</th>
+                                <td>
+                                    <span class="badge {% if loan.credit_investigator_remarks.suspicious_indicator == 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ loan.credit_investigator_remarks.get_suspicious_indicator_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Credit Risk:</th>
+                                <td>
+                                    <span class="badge 
+                                        {% if loan.credit_investigator_remarks.credit_risk_assessment == 'LOW' %}bg-success
+                                        {% elif loan.credit_investigator_remarks.credit_risk_assessment == 'MEDIUM' %}bg-warning
+                                        {% elif loan.credit_investigator_remarks.credit_risk_assessment == 'HIGH' %}bg-danger
+                                        {% endif %}">
+                                        {{ loan.credit_investigator_remarks.get_credit_risk_assessment_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if loan.credit_investigator_remarks.remarks %}
+                                <tr>
+                                    <th>Remarks:</th>
+                                    <td>{{ loan.credit_investigator_remarks.remarks }}</td>
+                                </tr>
+                            {% endif %}
+                        </table>
+                    {% else %}
+                        <div class="alert alert-warning">No credit investigator assessment available.</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h3 class="card-title mb-0">Marketing Officer Remarks</h3>
+                </div>
+                <div class="card-body">
+                    {% if loan.marketing_officer_remarks %}
+                        <table class="table">
+                            <tr>
+                                <th>Officer Name:</th>
+                                <td>{{ loan.marketing_officer_remarks.marketing_officer_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Documents Complete:</th>
+                                <td>
+                                    <span class="badge {% if loan.marketing_officer_remarks.complete_documents == 'YES' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ loan.marketing_officer_remarks.get_complete_documents_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if loan.marketing_officer_remarks.remarks %}
+                                <tr>
+                                    <th>Remarks:</th>
+                                    <td>{{ loan.marketing_officer_remarks.remarks }}</td>
+                                </tr>
+                            {% endif %}
+                        </table>
+                    {% else %}
+                        <div class="alert alert-warning">No marketing officer remarks available.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Modals -->
+{% if loan.documents %}
+    {% if loan.documents.valid_id %}
+        <div class="modal fade" id="validIdModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Valid ID</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ loan.documents.valid_id.url }}" class="img-fluid" alt="Valid ID">
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if loan.documents.proof_of_income %}
+        <div class="modal fade" id="proofOfIncomeModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Proof of Income</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ loan.documents.proof_of_income.url }}" class="img-fluid" alt="Proof of Income">
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if loan.documents.utility_bill %}
+        <div class="modal fade" id="utilityBillModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Utility Bill</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ loan.documents.utility_bill.url }}" class="img-fluid" alt="Utility Bill">
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

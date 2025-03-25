@@ -1,0 +1,2 @@
+Sequence Length: 3
+Features: Sales,NumberOfAccount,month,quarter,year,Sales_lag_1,Sales_lag_2,Sales_lag_3,Sales_rolling_mean_3,Sales_rolling_std_3

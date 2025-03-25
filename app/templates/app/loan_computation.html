@@ -1,0 +1,143 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Loan Computation Calculator</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Vehicle Value and Down Payment -->
+            <div class="col-md-6 mb-3">
+                <h5 class="mb-3">Vehicle Information</h5>
+                <div class="form-group mb-3">
+                    <label class="form-label">Estimated Vehicle Value *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        {{ form.estimated_vehicle_value }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.estimated_vehicle_value.errors }}</div>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Down Payment Percentage *</label>
+                    <div class="input-group">
+                        {{ form.down_payment_percentage }}
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <div class="invalid-feedback">{{ form.down_payment_percentage.errors }}</div>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Down Payment Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        <input type="text" class="form-control" id="down_payment_amount" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loan Terms -->
+            <div class="col-md-6 mb-3">
+                <h5 class="mb-3">Loan Terms</h5>
+                <div class="form-group mb-3">
+                    <label class="form-label">Loan Term (Months) *</label>
+                    {{ form.loan_amount_term }}
+                    <div class="invalid-feedback">{{ form.loan_amount_term.errors }}</div>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Interest Rate</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="interest_rate" 
+                               name="interest_rate" value="{{ current_interest_rate }}" readonly>
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <div class="form-text text-muted">Current interest rate set by the system administrator.</div>
+                </div>
+            </div>
+
+            <!-- Loan Summary -->
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">Loan Summary</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Loan Amount Applied</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="text" class="form-control" id="loan_amount_applied" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Monthly Amortization</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="text" class="form-control" id="monthly_amortization" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Total Amount Payable</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="text" class="form-control" id="total_amount_payable" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Calculate loan details
+    function calculateLoanDetails() {
+        const vehicleValue = parseFloat(document.getElementById('{{ form.estimated_vehicle_value.id_for_label }}').value) || 0;
+        const downPaymentPercentage = parseFloat(document.getElementById('{{ form.down_payment_percentage.id_for_label }}').value) || 0;
+        const loanTerm = parseInt(document.getElementById('{{ form.loan_amount_term.id_for_label }}').value) || 0;
+        const interestRate = parseFloat(document.getElementById('interest_rate').value) || 0;
+
+        // Calculate down payment amount
+        const downPaymentAmount = vehicleValue * downPaymentPercentage;
+        document.getElementById('down_payment_amount').value = downPaymentAmount.toFixed(2);
+
+        // Calculate loan amount applied (Principal)
+        const loanAmountApplied = vehicleValue - downPaymentAmount;
+        document.getElementById('loan_amount_applied').value = loanAmountApplied.toFixed(2);
+
+        // Calculate monthly amortization using the formula:
+        // (((Loan Amount × Interest Rate) × Loan Term) + Loan Amount) / Loan Term
+        let monthlyAmortization = 0;
+        let totalAmount = 0;
+        
+        if (loanTerm > 0) {
+            const annualInterestRate = interestRate / 100;  // Convert percentage to decimal
+            const totalInterest = (loanAmountApplied * annualInterestRate * loanTerm);  // (Loan Amount × Interest Rate) × Loan Term
+            totalAmount = totalInterest + loanAmountApplied;  // Add principal to total interest
+            monthlyAmortization = totalAmount / loanTerm;  // Divide by loan term to get monthly payment
+        }
+
+        document.getElementById('monthly_amortization').value = monthlyAmortization.toFixed(2);
+        document.getElementById('total_amount_payable').value = totalAmount.toFixed(2);
+    }
+
+    // Add event listeners to form fields
+    const fields = [
+        '{{ form.estimated_vehicle_value.id_for_label }}',
+        '{{ form.down_payment_percentage.id_for_label }}',
+        '{{ form.loan_amount_term.id_for_label }}'
+    ];
+
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', calculateLoanDetails);
+        }
+    });
+
+    // Set initial values
+    calculateLoanDetails();
+</script>
+{% endblock %} 

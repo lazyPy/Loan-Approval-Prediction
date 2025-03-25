@@ -1,0 +1,102 @@
+{% extends 'app/loan_application/base_step.html' %}
+
+{% block step_content %}
+    <div class="row">
+        <!-- Contact Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Contact Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.contact_number.id_for_label }}" class="form-label">Contact Number *</label>
+                {{ form.contact_number }}
+                <div class="invalid-feedback">{{ form.contact_number.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.email_address.id_for_label }}" class="form-label">Email Address *</label>
+                {{ form.email_address }}
+                <div class="invalid-feedback">{{ form.email_address.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.facebook_account.id_for_label }}" class="form-label">Facebook Account</label>
+                {{ form.facebook_account }}
+                <div class="invalid-feedback">{{ form.facebook_account.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Current Address -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Current Address</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.no_and_street.id_for_label }}" class="form-label">No. and Street *</label>
+                {{ form.no_and_street }}
+                <div class="invalid-feedback">{{ form.no_and_street.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.barangay.id_for_label }}" class="form-label">Barangay *</label>
+                {{ form.barangay }}
+                <div class="invalid-feedback">{{ form.barangay.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.municipality.id_for_label }}" class="form-label">Municipality/City *</label>
+                {{ form.municipality }}
+                <div class="invalid-feedback">{{ form.municipality.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.province.id_for_label }}" class="form-label">Province *</label>
+                {{ form.province }}
+                <div class="invalid-feedback">{{ form.province.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Residency Information -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Residency Information</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.resident_status.id_for_label }}" class="form-label">Resident Status *</label>
+                {{ form.resident_status }}
+                <div class="invalid-feedback">{{ form.resident_status.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.length_of_stay.id_for_label }}" class="form-label">Length of Stay *</label>
+                {{ form.length_of_stay }}
+                <div class="invalid-feedback">{{ form.length_of_stay.errors }}</div>
+            </div>
+        </div>
+
+        <!-- Other Addresses -->
+        <div class="col-md-6 mb-3">
+            <h4 class="mb-3">Other Addresses</h4>
+            <div class="form-group mb-3">
+                <label for="{{ form.permanent_address.id_for_label }}" class="form-label">Permanent Address *</label>
+                {{ form.permanent_address }}
+                <div class="invalid-feedback">{{ form.permanent_address.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.provincial_address.id_for_label }}" class="form-label">Provincial Address</label>
+                {{ form.provincial_address }}
+                <div class="invalid-feedback">{{ form.provincial_address.errors }}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="{{ form.parents_address.id_for_label }}" class="form-label">Parents Address *</label>
+                {{ form.parents_address }}
+                <div class="invalid-feedback">{{ form.parents_address.errors }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block step_js %}
+<script>
+    // Add Bootstrap classes to form fields
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+        field.classList.add('form-control');
+    });
+
+    // Add required attribute to required fields
+    document.querySelectorAll('label').forEach(label => {
+        if (label.textContent.includes('*')) {
+            const fieldId = label.getAttribute('for');
+            document.getElementById(fieldId).setAttribute('required', '');
+        }
+    });
+</script>
+{% endblock %} 

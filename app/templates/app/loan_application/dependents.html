@@ -1,0 +1,173 @@
+{% extends 'app/loan_application/base_step.html' %}
+
+{% block step_content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Dependents Information</h4>
+            <p class="text-muted mb-4">Please provide information about your dependents (children, parents, or other relatives who depend on you financially).</p>
+
+            <!-- Number of Dependents -->
+            <div class="form-group mb-3">
+                <label for="number_of_dependents" class="form-label">Number of Dependents *</label>
+                <input type="number" id="number_of_dependents" class="form-control" min="0" value="0" required>
+                <small class="form-text text-muted">Enter the number of dependents and the form fields will appear automatically.</small>
+            </div>
+
+            <!-- Dependents List -->
+            <div id="dependents-container">
+                <!-- Dynamic dependent forms will be added here -->
+            </div>
+            
+            <!-- Hidden field for dependents data -->
+            <input type="hidden" name="dependents_data" id="dependents_data">
+        </div>
+    </div>
+
+    <!-- Template for dependent form -->
+    <template id="dependent-form-template">
+        <div class="dependent-form border rounded p-3 mb-3">
+            <h5 class="mb-3">Dependent #<span class="dependent-number"></span></h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Name *</label>
+                    <input type="text" class="form-control" name="name" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Age *</label>
+                    <input type="number" class="form-control" name="age" min="0" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Self Employed *</label>
+                    <select class="form-control" name="self_employed" required>
+                        <option value="Y">Yes</option>
+                        <option value="N" selected>No</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">School/Institution *</label>
+                    <input type="text" class="form-control" name="school" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Relation to Borrower *</label>
+                    <input type="text" class="form-control" name="relation" required>
+                </div>
+            </div>
+        </div>
+    </template>
+{% endblock %}
+
+{% block step_js %}
+<script>
+    function addDependentForms(count, existingData = null) {
+        const container = document.getElementById('dependents-container');
+        container.innerHTML = '';
+        
+        for (let i = 0; i < count; i++) {
+            const template = document.getElementById('dependent-form-template');
+            const clone = template.content.cloneNode(true);
+            
+            // Set the dependent number
+            clone.querySelector('.dependent-number').textContent = i + 1;
+            
+            // If we have existing data, populate the form fields
+            if (existingData && existingData[i]) {
+                const data = existingData[i];
+                clone.querySelector('input[name="name"]').value = data.name || '';
+                clone.querySelector('input[name="age"]').value = data.age || '';
+                clone.querySelector('input[name="school"]').value = data.school || '';
+                clone.querySelector('input[name="relation"]').value = data.relation || '';
+                clone.querySelector('select[name="self_employed"]').value = data.self_employed || 'N';
+            }
+            
+            container.appendChild(clone);
+        }
+    }
+
+    document.getElementById('stepForm').addEventListener('submit', function(e) {
+        // Collect data from all dependent forms
+        const dependentForms = document.querySelectorAll('.dependent-form');
+        const dependentsData = [];
+
+        dependentForms.forEach(form => {
+            const data = {
+                name: form.querySelector('input[name="name"]').value,
+                age: form.querySelector('input[name="age"]').value,
+                school: form.querySelector('input[name="school"]').value,
+                relation: form.querySelector('input[name="relation"]').value,
+                self_employed: form.querySelector('select[name="self_employed"]').value
+            };
+            dependentsData.push(data);
+        });
+
+        // Set the value of the hidden field
+        document.getElementById('dependents_data').value = JSON.stringify(dependentsData);
+        
+        // Save to session storage for recovery if page is reloaded
+        sessionStorage.setItem('dependentsData', JSON.stringify(dependentsData));
+    });
+
+    // Add dependent forms when number of dependents changes
+    document.getElementById('number_of_dependents').addEventListener('change', function() {
+        const numDependents = parseInt(this.value) || 0;
+        
+        // Try to get existing data from session storage
+        let existingData = null;
+        const storedData = sessionStorage.getItem('dependentsData');
+        if (storedData) {
+            try {
+                existingData = JSON.parse(storedData);
+                // If number of dependents has changed, either truncate or pad with nulls
+                existingData = existingData.slice(0, numDependents);
+                while (existingData.length < numDependents) {
+                    existingData.push(null);
+                }
+            } catch (e) {
+                console.error('Error parsing stored dependents data:', e);
+            }
+        }
+        
+        addDependentForms(numDependents, existingData);
+    });
+    
+    // Initialize forms if there's an initial value
+    window.addEventListener('load', function() {
+        const numDependentsField = document.getElementById('number_of_dependents');
+
+        // First priority: Check for existing dependents data passed from the view (from the database)
+        {% if dependents_data %}
+            const existingDependents = JSON.parse('{{ dependents_data|safe }}');
+            if (existingDependents && existingDependents.length > 0) {
+                numDependentsField.value = existingDependents.length;
+                addDependentForms(existingDependents.length, existingDependents);
+                // Also save to session storage for future use
+                sessionStorage.setItem('dependentsData', '{{ dependents_data|safe }}');
+            }
+        {% else %}
+            // Second priority: Check for data in session storage
+            const storedData = sessionStorage.getItem('dependentsData');
+            if (storedData) {
+                try {
+                    const sessionDependents = JSON.parse(storedData);
+                    if (sessionDependents && sessionDependents.length > 0) {
+                        numDependentsField.value = sessionDependents.length;
+                        addDependentForms(sessionDependents.length, sessionDependents);
+                    }
+                } catch (e) {
+                    console.error('Error parsing stored dependents data:', e);
+                }
+            }
+        {% endif %}
+        
+        // Set the initial value from context if available
+        {% if dependent_count %}
+            numDependentsField.value = {{ dependent_count }};
+            // If no forms have been created yet, create them
+            if (document.querySelectorAll('.dependent-form').length === 0) {
+                addDependentForms({{ dependent_count }});
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %} 

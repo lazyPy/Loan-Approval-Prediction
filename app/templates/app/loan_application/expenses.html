@@ -1,0 +1,106 @@
+{% extends 'app/loan_application/base_step.html' %}
+
+{% block step_content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Monthly Expenses</h4>
+            
+            <!-- Food and Groceries -->
+            <div class="form-group mb-3">
+                <label for="{{ form.food_and_groceries.id_for_label }}" class="form-label">Food and Groceries *</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.food_and_groceries }}
+                </div>
+                <div class="invalid-feedback">{{ form.food_and_groceries.errors }}</div>
+            </div>
+
+            <!-- Utilities -->
+            <div class="form-group mb-3">
+                <label for="{{ form.electric_and_water.id_for_label }}" class="form-label">Electricity and Water *</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.electric_and_water }}
+                </div>
+                <div class="invalid-feedback">{{ form.electric_and_water.errors }}</div>
+            </div>
+
+            <!-- Education and Miscellaneous -->
+            <div class="form-group mb-3">
+                <label for="{{ form.education_and_misc.id_for_label }}" class="form-label">Education and Miscellaneous *</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.education_and_misc }}
+                </div>
+                <div class="invalid-feedback">{{ form.education_and_misc.errors }}</div>
+            </div>
+
+            <!-- Other Expenses -->
+            <div class="form-group mb-3">
+                <label for="{{ form.other_expense.id_for_label }}" class="form-label">Other Expenses *</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    {{ form.other_expense }}
+                </div>
+                <div class="invalid-feedback">{{ form.other_expense.errors }}</div>
+            </div>
+
+            <!-- Total Expenses (Calculated) -->
+            <div class="form-group mb-3">
+                <label class="form-label">Total Monthly Expenses</label>
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    <input type="text" class="form-control" id="total_expenses" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block step_js %}
+<script>
+    // Add Bootstrap classes to form fields
+    document.querySelectorAll('input, select').forEach(field => {
+        field.classList.add('form-control');
+    });
+
+    // Add required attribute to required fields
+    document.querySelectorAll('label').forEach(label => {
+        if (label.textContent.includes('*')) {
+            const fieldId = label.getAttribute('for');
+            document.getElementById(fieldId).setAttribute('required', '');
+        }
+    });
+
+    // Format currency inputs and calculate total
+    const expenseFields = [
+        '{{ form.food_and_groceries.id_for_label }}',
+        '{{ form.electric_and_water.id_for_label }}',
+        '{{ form.education_and_misc.id_for_label }}',
+        '{{ form.other_expense.id_for_label }}'
+    ];
+
+    function calculateTotal() {
+        let total = 0;
+        expenseFields.forEach(fieldId => {
+            const value = parseFloat(document.getElementById(fieldId).value) || 0;
+            total += value;
+        });
+        document.getElementById('total_expenses').value = total.toFixed(2);
+    }
+
+    // Add event listeners to expense fields
+    expenseFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        field.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+            calculateTotal();
+        });
+    });
+
+    // Calculate initial total
+    calculateTotal();
+</script>
+{% endblock %} 

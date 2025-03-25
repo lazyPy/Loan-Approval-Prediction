@@ -1,0 +1,178 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Loan Disbursement Officer Dashboard</h2>
+    
+    <!-- Active Loans Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Pending Disbursements</h3>
+        </div>
+        <div class="card-body">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="activeLoansTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Reference Number</th>
+                                <th>Applicant Name</th>
+                                <th>Date Applied</th>
+                                <th>Loan Amount</th>
+                                <th>Term (Months)</th>
+                                <th>Monthly Amortization</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                                {% if loan.status.status == 'PROCEED_LDO' %}
+                                    <tr>
+                                        <td>{{ loan.loan_id }}</td>
+                                        <td>{{ loan.reference_number }}</td>
+                                        <td>
+                                            {% if loan.personal_info %}
+                                                {{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }}
+                                            {% else %}
+                                                No Name
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ loan.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                {{ loan.loan_details.loan_amount_term }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                ₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ loan.status.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'loan_disbursement_officer_loan_details' loan.loan_id %}" class="btn btn-primary btn-sm">Process</a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No pending disbursements found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Historical Loans Card -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="card-title mb-0">Disbursement History</h3>
+        </div>
+        <div class="card-body">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="historyLoansTable">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Reference Number</th>
+                                <th>Applicant Name</th>
+                                <th>Date Applied</th>
+                                <th>Loan Amount</th>
+                                <th>Term (Months)</th>
+                                <th>Monthly Amortization</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th>Disbursement Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                                {% if loan.loan_disbursement_officer_remarks %}
+                                    <tr>
+                                        <td>{{ loan.loan_id }}</td>
+                                        <td>{{ loan.reference_number }}</td>
+                                        <td>
+                                            {% if loan.personal_info %}
+                                                {{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }}
+                                            {% else %}
+                                                No Name
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ loan.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                {{ loan.loan_details.loan_amount_term }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if loan.loan_details %}
+                                                ₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if loan.status.status == 'COMPLETED' %}bg-success
+                                                {% elif loan.status.status == 'CANCELLED' %}bg-danger
+                                                {% else %}bg-secondary
+                                                {% endif %}">
+                                                {{ loan.status.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'loan_disbursement_officer_loan_details' loan.loan_id %}" class="btn btn-secondary btn-sm">View Details</a>
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if loan.loan_disbursement_officer_remarks.status == 'COMPLETED' %}bg-success
+                                                {% elif loan.loan_disbursement_officer_remarks.status == 'CANCELLED' %}bg-danger
+                                                {% else %}bg-warning
+                                                {% endif %}">
+                                                {{ loan.loan_disbursement_officer_remarks.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No processed disbursements found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

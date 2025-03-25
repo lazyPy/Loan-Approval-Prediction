@@ -1,0 +1,138 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Monthly Loan Quota Management - System Administrator{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white border-bottom border-2">
+                    <h5 class="card-title mb-0">Admin Menu</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'admin_dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        <a href="{% url 'user_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i> User Management
+                        </a>
+                        <a href="{% url 'interest_rate_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-percentage me-2"></i> Interest Rate Management
+                        </a>
+                        <a href="{% url 'loan_quota_list' %}" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-chart-line me-2"></i> Loan Quota Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Monthly Loan Quota</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Monthly Quota</th>
+                                    <th>Yearly Quota (Calculated)</th>
+                                    <th>Current Month Progress</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold fs-5">{{ monthly_quota|floatformat:2 }}</td>
+                                    <td>{{ yearly_quota|floatformat:2 }}</td>
+                                    <td>
+                                        {% if monthly_stats %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {{ monthly_stats.quota_met|yesno:'bg-success,bg-primary' }}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ monthly_stats.disbursement_percentage|floatformat:0 }}%;" 
+                                                     aria-valuenow="{{ monthly_stats.disbursement_percentage|floatformat:0 }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ monthly_stats.disbursement_percentage|floatformat:0 }}%
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ monthly_stats.total_amount|floatformat:2 }} / {{ monthly_stats.monthly_quota|floatformat:2 }}
+                                                for {{ current_month }} {{ current_year }}
+                                            </small>
+                                        {% else %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-primary" 
+                                                     role="progressbar" 
+                                                     style="width: 0%;" 
+                                                     aria-valuenow="0" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    0%
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                No data for {{ current_month }} {{ current_year }}
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editQuotaModal">
+                                            <i class="fas fa-edit me-1"></i> Edit Quota
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Edit Quota Modal -->
+                    <div class="modal fade" id="editQuotaModal" tabindex="-1" aria-labelledby="editQuotaModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="editQuotaModalLabel">Edit Monthly Loan Quota</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="post" action="{% url 'loan_quota_update' %}">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="quotaInput" class="form-label">Monthly Quota</label>
+                                            <input type="number" class="form-control" id="quotaInput" name="monthly_quota" 
+                                                   value="{{ monthly_quota }}" step="1000" min="1000" required>
+                                            <div class="form-text">Enter the monthly loan quota amount for disbursements.</div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Changing the monthly quota will affect all dashboard statistics and reports.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>About Monthly Loan Quota</h5>
+                            <p>The monthly loan quota sets the target amount for loan disbursements each month. This value is used to calculate performance metrics across the system. The yearly quota is automatically calculated as 12 times the monthly quota.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

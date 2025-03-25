@@ -1,0 +1,116 @@
+{% extends 'app/loan_application/base_step.html' %}
+
+{% block step_content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Marketing Information</h4>
+            
+            <!-- Marketing Source -->
+            <div class="form-group mb-3">
+                <label for="{{ form.marketing_source.id_for_label }}" class="form-label">How did you hear about us? *</label>
+                {{ form.marketing_source }}
+                <div class="invalid-feedback">{{ form.marketing_source.errors }}</div>
+            </div>
+
+            <!-- Sales Representative -->
+            <div class="form-group mb-3 d-none" id="sales_rep_group">
+                <label for="{{ form.sales_representative.id_for_label }}" class="form-label">Sales Representative *</label>
+                {{ form.sales_representative }}
+                <div class="invalid-feedback">{{ form.sales_representative.errors }}</div>
+            </div>
+            
+            {% if not all_steps_completed %}
+            <!-- Missing Steps Warning -->
+            <div class="alert alert-danger mt-4">
+                <h5><i class="fas fa-exclamation-circle me-2"></i>Incomplete Application</h5>
+                <p>You have not completed all the required steps of the loan application. Please complete the following steps before submitting:</p>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for i in "12345678910"|make_list %}
+                                {% with step_number=forloop.counter %}
+                                    {% if step_number < 11 %}
+                                        <a href="{% url 'loan_application_step' step=step_number %}" 
+                                           class="btn {% if step_number in completed_steps %}btn-success{% else %}btn-outline-danger{% endif %} mb-2">
+                                            Step {{ step_number }}
+                                            {% if step_number in completed_steps %}
+                                                <i class="fas fa-check-circle ms-1"></i>
+                                            {% else %}
+                                                <i class="fas fa-times-circle ms-1"></i>
+                                            {% endif %}
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-4">
+                <p class="mb-0"><i class="fas fa-info-circle"></i> By clicking the "Submit Application" button, you confirm that all information provided is complete and accurate.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block step_js %}
+<script>
+    // Add Bootstrap classes to form fields
+    document.querySelectorAll('input, select').forEach(field => {
+        field.classList.add('form-control');
+    });
+
+    // Add required attribute to required fields
+    document.querySelectorAll('label').forEach(label => {
+        if (label.textContent.includes('*')) {
+            const fieldId = label.getAttribute('for');
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.setAttribute('required', '');
+            }
+        }
+    });
+
+    // Show/hide sales representative field based on marketing source
+    const marketingSourceField = document.getElementById('{{ form.marketing_source.id_for_label }}');
+    const salesRepGroup = document.getElementById('sales_rep_group');
+    const salesRepInput = document.getElementById('{{ form.sales_representative.id_for_label }}');
+    
+    if (marketingSourceField && salesRepGroup && salesRepInput) {
+        // Initially remove required attribute
+        salesRepInput.removeAttribute('required');
+        
+        marketingSourceField.addEventListener('change', function() {
+            const isAgent = this.value === 'Thru Agent';
+            
+            if (isAgent) {
+                salesRepGroup.classList.remove('d-none');
+                salesRepInput.setAttribute('required', '');
+                salesRepInput.value = '';  // Clear any default value
+            } else {
+                salesRepGroup.classList.add('d-none');
+                salesRepInput.removeAttribute('required');
+                salesRepInput.value = 'N/A';  // Set default value for non-agent sources
+            }
+        });
+
+        // Set initial state on page load
+        window.addEventListener('load', function() {
+            const isAgent = marketingSourceField.value === 'Thru Agent';
+            
+            if (isAgent) {
+                salesRepGroup.classList.remove('d-none');
+                salesRepInput.setAttribute('required', '');
+            } else {
+                salesRepGroup.classList.add('d-none');
+                salesRepInput.removeAttribute('required');
+                if (!salesRepInput.value) {
+                    salesRepInput.value = 'N/A';
+                }
+            }
+        });
+    }
+</script>
+{% endblock %} 

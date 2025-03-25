@@ -1,0 +1,432 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}Area Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Area Manager Dashboard</h2>
+        <a href="{% url 'area_manager_forecasting' %}" class="btn btn-lg btn-primary">
+            <i class="fas fa-chart-line me-2"></i>Forecast Analysis
+        </a>
+    </div>
+    
+    <!-- Overview Cards -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Total Loans</h6>
+                    <h3>{{ completed_loans_count }}</h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <small>Overall</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Total Disbursement</h6>
+                    <h3>₱{{ total_disbursed|floatformat:2 }}</h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <small>Overall</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Daily Disbursement</h6>
+                    <h3>
+                        {% if daily_stats.first %}
+                            ₱{{ daily_stats.first.total_amount|floatformat:2 }}
+                        {% else %}
+                            ₱0.00
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <small>Today</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Weekly Disbursement</h6>
+                    <h3>
+                        {% if weekly_stats.first %}
+                            ₱{{ weekly_stats.first.total_amount|floatformat:2 }}
+                        {% else %}
+                            ₱0.00
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <small>This week</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Monthly Disbursement</h6>
+                    <h3>
+                        {% if monthly_stats.first %}
+                            ₱{{ monthly_stats.first.total_amount|floatformat:2 }}
+                        {% else %}
+                            ₱0.00
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <small>This month</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Yearly Disbursement</h6>
+                    <h3>
+                        {% if yearly_stats.first %}
+                            ₱{{ yearly_stats.first.total_amount|floatformat:2 }}
+                        {% else %}
+                            ₱0.00
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <small>This year</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs for different time periods -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Loan Disbursement Statistics</h3>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="timeperiodTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="daily-tab" data-bs-toggle="tab" data-bs-target="#daily" type="button" role="tab" aria-controls="daily" aria-selected="true">Daily</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly" type="button" role="tab" aria-controls="weekly" aria-selected="false">Weekly</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab" aria-controls="monthly" aria-selected="false">Monthly</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#yearly" type="button" role="tab" aria-controls="yearly" aria-selected="false">Yearly</button>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="timeperiodTabsContent">
+                <!-- Daily Tab -->
+                <div class="tab-pane fade show active" id="daily" role="tabpanel" aria-labelledby="daily-tab">
+                    <h4>Daily Loan Disbursement (Last 30 Days)</h4>
+                    <div class="chart-container" style="position: relative; height:400px; width:100%">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                    
+                    {% if daily_stats %}
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount Disbursed</th>
+                                    <th>Percentage of Monthly Quota</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in daily_stats %}
+                                <tr>
+                                    <td>{{ stat.date|date:"d M Y" }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
+                                    <td>{{ stat.disbursement_percentage|floatformat:1 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-3">No daily statistics available yet.</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Weekly Tab -->
+                <div class="tab-pane fade" id="weekly" role="tabpanel" aria-labelledby="weekly-tab">
+                    <h4>Weekly Loan Disbursement (Last 12 Weeks)</h4>
+                    <div class="chart-container" style="position: relative; height:400px; width:100%">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                    
+                    {% if weekly_stats %}
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Week</th>
+                                    <th>Period</th>
+                                    <th>Amount Disbursed</th>
+                                    <th>Percentage of Monthly Quota</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in weekly_stats %}
+                                <tr>
+                                    <td>Week {{ stat.week }} ({{ stat.month }}/{{ stat.year }})</td>
+                                    <td>{{ stat.start_date|date:"d M" }} - {{ stat.end_date|date:"d M Y" }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
+                                    <td>{{ stat.disbursement_percentage|floatformat:1 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-3">No weekly statistics available yet.</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Monthly Tab -->
+                <div class="tab-pane fade" id="monthly" role="tabpanel" aria-labelledby="monthly-tab">
+                    <h4>Monthly Loan Disbursement (Last 12 Months)</h4>
+                    <div class="chart-container" style="position: relative; height:400px; width:100%">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                    
+                    {% if monthly_stats %}
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Amount Disbursed</th>
+                                    <th>Monthly Quota</th>
+                                    <th>Percentage of Quota</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in monthly_stats %}
+                                <tr>
+                                    <td>{{ stat.get_month_name }} {{ stat.year }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
+                                    <td>₱{{ stat.monthly_quota|floatformat:2 }}</td>
+                                    <td>{{ stat.disbursement_percentage|floatformat:1 }}%</td>
+                                    <td>
+                                        <span class="badge {% if stat.quota_met %}bg-success{% else %}bg-warning{% endif %}">
+                                            {% if stat.quota_met %}Quota Met{% else %}Not Met{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-3">No monthly statistics available yet.</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Yearly Tab -->
+                <div class="tab-pane fade" id="yearly" role="tabpanel" aria-labelledby="yearly-tab">
+                    <h4>Yearly Loan Disbursement</h4>
+                    <div class="chart-container" style="position: relative; height:400px; width:100%">
+                        <canvas id="yearlyChart"></canvas>
+                    </div>
+                    
+                    {% if yearly_stats %}
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Amount Disbursed</th>
+                                    <th>Yearly Quota</th>
+                                    <th>Percentage of Quota</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in yearly_stats %}
+                                <tr>
+                                    <td>{{ stat.year }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
+                                    <td>₱{{ stat.yearly_quota|floatformat:2 }}</td>
+                                    <td>{{ stat.disbursement_percentage }}%</td>
+                                    <td>
+                                        <span class="badge {% if stat.quota_met %}bg-success{% else %}bg-warning{% endif %}">
+                                            {% if stat.quota_met %}Quota Met{% else %}Not Met{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-3">No yearly statistics available yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Loans -->
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Recent Disbursed Loans</h3>
+        </div>
+        <div class="card-body">
+            {% if recent_loans %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Applicant Name</th>
+                            <th>Vehicle</th>
+                            <th>Loan Amount</th>
+                            <th>Disbursement Date</th>
+                            <th>Marketing Source</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in recent_loans %}
+                        <tr>
+                            <td>{{ loan.loan_id }}</td>
+                            <td>
+                                {% if loan.personal_info %}
+                                    {{ loan.personal_info.last_name }}, {{ loan.personal_info.first_name }}
+                                {% else %}
+                                    No Name
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if loan.vehicle %}
+                                    {{ loan.vehicle.make_brand }} {{ loan.vehicle.series }} ({{ loan.vehicle.year_model }})
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</td>
+                            <td>{{ loan.loan_disbursement_officer_remarks.disbursement_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if loan.marketing %}
+                                    {{ loan.marketing.get_marketing_source_display }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'area_manager_loan_details' loan.loan_id %}" class="btn btn-sm btn-primary">View Details</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No disbursed loans found.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script>
+// Store chart data
+const chartData = {
+    daily: {
+        labels: {{ daily_labels|safe }},
+        data: {{ daily_data|safe }}
+    },
+    weekly: {
+        labels: {{ weekly_labels|safe }},
+        data: {{ weekly_data|safe }}
+    },
+    monthly: {
+        labels: {{ monthly_labels|safe }},
+        data: {{ monthly_data|safe }}
+    },
+    yearly: {
+        labels: {{ yearly_labels|safe }},
+        data: {{ yearly_data|safe }}
+    }
+};
+
+// Chart configuration factory
+const createChartConfig = (type, data, labels) => ({
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: `${type} Loan Disbursement`,
+            data: data,
+            backgroundColor: type === 'Daily' ? 'rgba(75, 192, 192, 0.2)' :
+                           type === 'Weekly' ? 'rgba(54, 162, 235, 0.2)' :
+                           type === 'Monthly' ? 'rgba(255, 159, 64, 0.2)' :
+                           'rgba(153, 102, 255, 0.2)',
+            borderColor: type === 'Daily' ? 'rgba(75, 192, 192, 1)' :
+                        type === 'Weekly' ? 'rgba(54, 162, 235, 1)' :
+                        type === 'Monthly' ? 'rgba(255, 159, 64, 1)' :
+                        'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Amount (₱)'
+                }
+            }
+        }
+    }
+});
+
+// Initialize charts when tab is shown
+document.addEventListener('DOMContentLoaded', () => {
+    const charts = {};
+    
+    // Create daily chart immediately as it's visible
+    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+    charts.daily = new Chart(dailyCtx, createChartConfig('Daily', chartData.daily.data, chartData.daily.labels));
+    
+    // Initialize other charts only when their tabs are shown
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', (e) => {
+            const type = e.target.id.split('-')[0];
+            if (!charts[type]) {
+                const ctx = document.getElementById(`${type}Chart`).getContext('2d');
+                charts[type] = new Chart(ctx, createChartConfig(
+                    type.charAt(0).toUpperCase() + type.slice(1),
+                    chartData[type].data,
+                    chartData[type].labels
+                ));
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,89 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 text-center">
+            <h1 class="display-4 mb-4">Welcome to Loan Approval Prediction</h1>
+            <p class="lead mb-5">Your trusted partner for vehicle loan applications and approvals</p>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-car fa-4x mb-3 text-primary"></i>
+                    <h3 class="card-title">Apply for a Loan</h3>
+                    <p class="card-text">Start your vehicle loan application process. Fill out your personal, employment, and loan details to get started.</p>
+                    <a href="{% url 'loan_application' %}" class="btn btn-primary">Apply Now</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-search fa-4x mb-3 text-primary"></i>
+                    <h3 class="card-title">Check Status</h3>
+                    <p class="card-text">Already applied? Check the status of your loan application using your reference number.</p>
+                    <a href="{% url 'check_status' %}" class="btn btn-primary">Check Status</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-question-circle fa-4x mb-3 text-primary"></i>
+                    <h3 class="card-title">Need Help?</h3>
+                    <p class="card-text">Have questions about the loan application process? Contact our support team for assistance.</p>
+                    <a href="#" class="btn btn-primary">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">How It Works</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="rounded-circle bg-light p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                <i class="fas fa-file-alt fa-3x text-primary"></i>
+                            </div>
+                            <h5>1. Apply</h5>
+                            <p>Complete the loan application form</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="rounded-circle bg-light p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                <i class="fas fa-clipboard-check fa-3x text-primary"></i>
+                            </div>
+                            <h5>2. Verification</h5>
+                            <p>Our team verifies your information</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="rounded-circle bg-light p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                <i class="fas fa-check-circle fa-3x text-primary"></i>
+                            </div>
+                            <h5>3. Approval</h5>
+                            <p>Loan is approved based on assessment</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="rounded-circle bg-light p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                <i class="fas fa-money-bill-wave fa-3x text-primary"></i>
+                            </div>
+                            <h5>4. Disbursement</h5>
+                            <p>Funds are disbursed for your vehicle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

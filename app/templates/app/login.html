@@ -1,0 +1,68 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow py-2">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0 text-center">Welcome Back</h4>
+                <p class="text-center text-muted mb-0 mt-1">Sign in to your account</p>
+            </div>
+            <div class="card-body">
+                
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="user_role" class="form-label">Login as</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-user-tag text-muted"></i>
+                            </span>
+                            <select name="user_role" id="user_role" class="form-select border-start-0">
+                                <option value="">---SELECT ROLE---</option>
+                                {% for value, label in position_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-user text-muted"></i>
+                            </span>
+                            <input type="text" name="username" id="username" class="form-control border-start-0" placeholder="Enter your username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" name="password" id="password" class="form-control border-start-0" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </div>
+                    
+                    {% if next %}
+                        <input type="hidden" name="next" value="{{ next }}">
+                    {% endif %}
+                </form>
+            </div>
+            <div class="card-footer bg-white text-center border-0">
+                <div class="small text-muted">Need help? Contact system administrator</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
