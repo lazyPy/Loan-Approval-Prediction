@@ -14,5 +14,4 @@ env/
 Thumbs.db
 
 # Project specific
-#migrations/*.py
-!migrations/__init__.py
+migrations/
