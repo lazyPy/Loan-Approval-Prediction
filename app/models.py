@@ -678,7 +678,6 @@ class InterestRate(models.Model):
     rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('10.00'), help_text="Interest rate percentage (e.g., 10.00 for 10%)")
     effective_date = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, related_name='interest_rates')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

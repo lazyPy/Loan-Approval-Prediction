@@ -48,27 +48,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="fw-bold">
-                                        {% if interest_rates %}
-                                            {{ interest_rates.0.rate }}%
-                                        {% else %}
-                                            10.00% (Default)
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if interest_rates %}
-                                            {{ interest_rates.0.effective_date|date:"M d, Y" }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if interest_rates %}
-                                            {{ interest_rates.0.updated_at|date:"M d, Y" }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
+                                    <td class="fw-bold">{{ interest_rate.rate }}%</td>
+                                    <td>{{ interest_rate.effective_date|date:"M d, Y"|default:"-" }}</td>
+                                    <td>{{ interest_rate.updated_at|date:"M d, Y"|default:"-" }}</td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editRateModal">
                                             <i class="fas fa-edit me-1"></i> Edit
@@ -87,13 +69,13 @@
                                     <h5 class="modal-title" id="editRateModalLabel">Edit Interest Rate</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form method="post" action="{% if interest_rates %}{% url 'interest_rate_update' interest_rates.0.id %}{% else %}{% url 'interest_rate_create' %}{% endif %}">
+                                <form method="post" action="{% url 'interest_rate_update' interest_rate.id|default:1 %}">
                                     {% csrf_token %}
                                     <div class="modal-body">
                                         <div class="mb-3">
                                             <label for="rateInput" class="form-label">Interest Rate (%)</label>
                                             <input type="number" class="form-control" id="rateInput" name="rate" 
-                                                    value="{% if interest_rates %}{{ interest_rates.0.rate }}{% else %}10.00{% endif %}" 
+                                                    value="{{ interest_rate.rate }}" 
                                                     step="0.01" min="0.01" max="100.00" required>
                                             <div class="form-text">Enter the interest rate percentage (e.g., 10.00 for 10%).</div>
                                         </div>

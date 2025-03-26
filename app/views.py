@@ -1568,10 +1568,10 @@ def interest_rate_list(request):
         return redirect('home')
     
     # Get the current interest rate (should be only one)
-    interest_rates = InterestRate.objects.all().order_by('-created_at')
+    interest_rate = InterestRate.objects.first() or InterestRate(rate=InterestRate.get_active_rate())
     
     context = {
-        'interest_rates': interest_rates,
+        'interest_rate': interest_rate,
     }
     
     return render(request, 'app/admin/interest_rate.html', context)
@@ -1580,33 +1580,36 @@ def interest_rate_list(request):
 @role_required(['ADMIN'])
 def interest_rate_update(request, pk):
     """
-    Update the existing interest rate.
+    Update or create an interest rate.
     
     Args:
         request: The HTTP request.
         pk: The primary key of the interest rate to update.
         
     Returns:
-        A rendered HTML page with the interest rate update form or a redirect to the interest rate list.
+        A redirect to the interest rate list page.
     """
     # Check if user is an admin
     if not request.user.is_superuser:
         messages.error(request, "You do not have permission to access this page.")
         return redirect('home')
     
-    interest_rate = get_object_or_404(InterestRate, pk=pk)
-    
     if request.method == 'POST':
-        form = InterestRateForm(request.POST, instance=interest_rate)
-        if form.is_valid():
-            form.save()
+        try:
+            # Get or create the interest rate
+            interest_rate, created = InterestRate.objects.get_or_create(pk=pk)
+            
+            # Update the rate
+            interest_rate.rate = Decimal(request.POST.get('rate'))
+            interest_rate.save()
             
             messages.success(request, "Interest rate updated successfully.")
-            return redirect('interest_rate_list')
-    else:
-        form = InterestRateForm(instance=interest_rate)
+        except (ValueError, InvalidOperation) as e:
+            messages.error(request, "Invalid interest rate value.")
+        except Exception as e:
+            messages.error(request, f"Error updating interest rate: {str(e)}")
     
-    return render(request, 'app/admin/interest_rate_form.html', {'form': form, 'is_create': False})
+    return redirect('interest_rate_list')
 
 @login_required
 @role_required(['ADMIN'])
@@ -1639,7 +1642,7 @@ def user_create(request):
         request: The HTTP request.
         
     Returns:
-        A rendered HTML page with the user creation form or a redirect to the user list.
+        A redirect to the user list.
     """
     # Check if user is an admin
     if not request.user.is_superuser:
@@ -1676,27 +1679,38 @@ def user_create(request):
             messages.error(request, "Email already exists.")
             return redirect('user_list')
         
-        # Create User object
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password1,
-            first_name=first_name,
-            last_name=last_name
-        )
-        
-        # Create UserAccount object
-        UserAccount.objects.create(
-            user=user,
-            position=position,
-            contact_number=contact_number,
-            address=address
-        )
-        
-        messages.success(request, f"User '{username}' created successfully.")
-        return redirect('user_list')
+        try:
+            # Create User object - if position is ADMIN, create superuser
+            if position == 'ADMIN':
+                user = User.objects.create_superuser(
+                    username=username,
+                    email=email,
+                    password=password1,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+            else:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password1,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+            
+            # Create UserAccount object
+            UserAccount.objects.create(
+                user=user,
+                position=position,
+                contact_number=contact_number,
+                address=address
+            )
+            
+            messages.success(request, f"User '{username}' created successfully.")
+        except Exception as e:
+            messages.error(request, f"Error creating user: {str(e)}")
     
-    return render(request, 'app/admin/user_form.html', {'is_create': True})
+    return redirect('user_list')
 
 @login_required
 @role_required(['ADMIN'])
@@ -1709,7 +1723,7 @@ def user_update(request, pk):
         pk: The primary key of the user to update.
         
     Returns:
-        A rendered HTML page with the user update form or a redirect to the user list.
+        A redirect to the user list.
     """
     # Check if user is an admin
     if not request.user.is_superuser:
@@ -1718,42 +1732,45 @@ def user_update(request, pk):
     
     user = get_object_or_404(User, pk=pk)
     
-    # Get or initialize UserAccount
-    try:
-        user_account = user.user_account
-    except UserAccount.DoesNotExist:
-        # Create a new empty UserAccount if one doesn't exist
-        user_account = UserAccount(user=user)
-    
     if request.method == 'POST':
-        # Process the form data
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        position = request.POST.get('position')
-        contact_number = request.POST.get('contact_number')
-        address = request.POST.get('address')
-        
-        # Update User model
-        user.first_name = first_name
-        user.last_name = last_name
-        user.email = email
-        user.save()
-        
-        # Update or create UserAccount model
-        user_account.position = position
-        user_account.contact_number = contact_number
-        user_account.address = address
-        user_account.save()
-        
-        messages.success(request, f"User '{user.username}' updated successfully.")
-        return redirect('user_list')
+        try:
+            # Get or initialize UserAccount
+            user_account, created = UserAccount.objects.get_or_create(user=user)
+            
+            # Process the form data
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            position = request.POST.get('position')
+            contact_number = request.POST.get('contact_number')
+            address = request.POST.get('address')
+            
+            # Update User model
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            
+            # Update superuser status based on position
+            if position == 'ADMIN':
+                user.is_superuser = True
+                user.is_staff = True
+            else:
+                user.is_superuser = False
+                user.is_staff = False
+                
+            user.save()
+            
+            # Update UserAccount model
+            user_account.position = position
+            user_account.contact_number = contact_number
+            user_account.address = address
+            user_account.save()
+            
+            messages.success(request, f"User '{user.username}' updated successfully.")
+        except Exception as e:
+            messages.error(request, f"Error updating user: {str(e)}")
     
-    return render(request, 'app/admin/user_form.html', {
-        'user_obj': user,
-        'user_account': user_account,
-        'is_update': True
-    })
+    return redirect('user_list')
 
 @login_required
 @role_required(['ADMIN'])

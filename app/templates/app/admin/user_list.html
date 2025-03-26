@@ -67,7 +67,9 @@
                                     </td>
                                     <td>{{ user.email }}</td>
                                     <td>
-                                        {% if user.user_account %}
+                                        {% if user.is_superuser %}
+                                            System Administrator
+                                        {% elif user.user_account %}
                                             {{ user.user_account.get_position_display }}
                                         {% else %}
                                             N/A
