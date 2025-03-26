@@ -9,8 +9,8 @@ urlpatterns = [
     
     path('apply/', views.loan_application_step, name='loan_application'),
     path('apply/step/<int:step>/', views.loan_application_step, name='loan_application_step'),
-    path('loan-status/<uuid:reference_number>/', views.loan_status, name='loan_status'),
-    path('update-loan-status/<uuid:reference_number>/', views.update_loan_status, name='update_loan_status'),
+    path('loan-status/<str:reference_number>/', views.loan_status, name='loan_status'),
+    path('update-loan-status/<str:reference_number>/', views.update_loan_status, name='update_loan_status'),
     path('loan-computation/', views.loan_computation, name='loan_computation'),
     path('check-status/', views.check_status, name='check_status'),
     
