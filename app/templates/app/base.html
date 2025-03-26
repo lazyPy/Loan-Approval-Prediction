@@ -192,6 +192,19 @@
                 border-radius: 0.75rem;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
                 margin-top: 0.5rem;
+                /* Animation properties */
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                transform-origin: top;
+            }
+            
+            .navbar-collapse.collapsing {
+                transform: scaleY(0);
+                opacity: 0;
+            }
+            
+            .navbar-collapse.show {
+                transform: scaleY(1);
+                opacity: 1;
             }
             
             .navbar-nav .nav-link {
@@ -379,6 +392,27 @@
                     "infoFiltered": "(filtered from _MAX_ total entries)"
                 },
                 "responsive": true
+            });
+            
+            // Initialize navbar animation for small devices
+            const navbarToggler = $('.navbar-toggler');
+            const navbarCollapse = $('.navbar-collapse');
+            
+            // Add custom animation classes when toggle is clicked
+            navbarToggler.click(function() {
+                if (navbarCollapse.hasClass('show')) {
+                    // When closing
+                    navbarCollapse.css('transform', 'scaleY(1)');
+                    setTimeout(function() {
+                        navbarCollapse.css('transform', 'scaleY(0)');
+                    }, 10);
+                } else {
+                    // When opening
+                    navbarCollapse.css('transform', 'scaleY(0)');
+                    setTimeout(function() {
+                        navbarCollapse.css('transform', 'scaleY(1)');
+                    }, 10);
+                }
             });
         });
     </script>
