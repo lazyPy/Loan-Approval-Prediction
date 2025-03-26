@@ -284,6 +284,9 @@ class RequiredDocument(models.Model):
     valid_id = models.FileField(upload_to='documents/valid_ids/')
     proof_of_income = models.FileField(upload_to='documents/proof_of_income/')
     utility_bill = models.FileField(upload_to='documents/utility_bills/')
+    
+    def __str__(self):
+        return f"Documents for Loan {self.loan.loan_id}"
 
 class Marketing(models.Model):
     MARKETING_SOURCE_CHOICES = [
