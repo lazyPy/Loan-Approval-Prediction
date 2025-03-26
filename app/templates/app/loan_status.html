@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load humanize %}
 
 {% block content %}
 
@@ -98,11 +99,11 @@
                                     {% if loan.loan_details %}
                                         <div class="mb-2">
                                             <span class="text-muted">Loan Amount:</span>
-                                            <span class="fw-bold d-block">₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</span>
+                                            <span class="fw-bold d-block">₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}</span>
                                         </div>
                                         <div class="mb-2">
                                             <span class="text-muted">Monthly Payment:</span>
-                                            <span class="d-block">₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}</span>
+                                            <span class="d-block">₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}</span>
                                         </div>
                                         <div class="mb-2">
                                             <span class="text-muted">Term:</span>

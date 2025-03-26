@@ -1,5 +1,6 @@
 {% extends 'app/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Area Manager Dashboard{% endblock %}
 
@@ -30,7 +31,7 @@
             <div class="card bg-success text-white mb-4">
                 <div class="card-body">
                     <h6 class="card-title">Total Disbursement</h6>
-                    <h3>₱{{ total_disbursed|floatformat:2 }}</h3>
+                    <h3>₱{{ total_disbursed|floatformat:2|intcomma }}</h3>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
                     <small>Overall</small>
@@ -44,7 +45,7 @@
                     <h6 class="card-title">Daily Disbursement</h6>
                     <h3>
                         {% if daily_stats.first %}
-                            ₱{{ daily_stats.first.total_amount|floatformat:2 }}
+                            ₱{{ daily_stats.first.total_amount|floatformat:2|intcomma }}
                         {% else %}
                             ₱0.00
                         {% endif %}
@@ -62,7 +63,7 @@
                     <h6 class="card-title">Weekly Disbursement</h6>
                     <h3>
                         {% if weekly_stats.first %}
-                            ₱{{ weekly_stats.first.total_amount|floatformat:2 }}
+                            ₱{{ weekly_stats.first.total_amount|floatformat:2|intcomma }}
                         {% else %}
                             ₱0.00
                         {% endif %}
@@ -80,7 +81,7 @@
                     <h6 class="card-title">Monthly Disbursement</h6>
                     <h3>
                         {% if monthly_stats.first %}
-                            ₱{{ monthly_stats.first.total_amount|floatformat:2 }}
+                            ₱{{ monthly_stats.first.total_amount|floatformat:2|intcomma }}
                         {% else %}
                             ₱0.00
                         {% endif %}
@@ -98,7 +99,7 @@
                     <h6 class="card-title">Yearly Disbursement</h6>
                     <h3>
                         {% if yearly_stats.first %}
-                            ₱{{ yearly_stats.first.total_amount|floatformat:2 }}
+                            ₱{{ yearly_stats.first.total_amount|floatformat:2|intcomma }}
                         {% else %}
                             ₱0.00
                         {% endif %}
@@ -153,7 +154,7 @@
                                 {% for stat in daily_stats %}
                                 <tr>
                                     <td>{{ stat.date|date:"d M Y" }}</td>
-                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2|intcomma }}</td>
                                     <td>{{ stat.disbursement_percentage|floatformat:1 }}%</td>
                                 </tr>
                                 {% endfor %}
@@ -188,7 +189,7 @@
                                 <tr>
                                     <td>Week {{ stat.week }} ({{ stat.month }}/{{ stat.year }})</td>
                                     <td>{{ stat.start_date|date:"d M" }} - {{ stat.end_date|date:"d M Y" }}</td>
-                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2|intcomma }}</td>
                                     <td>{{ stat.disbursement_percentage|floatformat:1 }}%</td>
                                 </tr>
                                 {% endfor %}
@@ -223,8 +224,8 @@
                                 {% for stat in monthly_stats %}
                                 <tr>
                                     <td>{{ stat.get_month_name }} {{ stat.year }}</td>
-                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
-                                    <td>₱{{ stat.monthly_quota|floatformat:2 }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2|intcomma }}</td>
+                                    <td>₱{{ stat.monthly_quota|floatformat:2|intcomma }}</td>
                                     <td>{{ stat.disbursement_percentage|floatformat:1 }}%</td>
                                     <td>
                                         <span class="badge {% if stat.quota_met %}bg-success{% else %}bg-warning{% endif %}">
@@ -264,8 +265,8 @@
                                 {% for stat in yearly_stats %}
                                 <tr>
                                     <td>{{ stat.year }}</td>
-                                    <td>₱{{ stat.total_amount|floatformat:2 }}</td>
-                                    <td>₱{{ stat.yearly_quota|floatformat:2 }}</td>
+                                    <td>₱{{ stat.total_amount|floatformat:2|intcomma }}</td>
+                                    <td>₱{{ stat.yearly_quota|floatformat:2|intcomma }}</td>
                                     <td>{{ stat.disbursement_percentage }}%</td>
                                     <td>
                                         <span class="badge {% if stat.quota_met %}bg-success{% else %}bg-warning{% endif %}">
@@ -323,6 +324,7 @@
                                     N/A
                                 {% endif %}
                             </td>
+                            <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}</td>
                             <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</td>
                             <td>{{ loan.loan_disbursement_officer_remarks.disbursement_date|date:"M d, Y" }}</td>
                             <td>

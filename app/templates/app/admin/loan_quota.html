@@ -1,5 +1,6 @@
 {% extends 'app/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Monthly Loan Quota Management - System Administrator{% endblock %}
 
@@ -48,8 +49,8 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="fw-bold fs-5">{{ monthly_quota|floatformat:2 }}</td>
-                                    <td>{{ yearly_quota|floatformat:2 }}</td>
+                                    <td class="fw-bold fs-5">₱{{ monthly_quota|floatformat:2|intcomma }}</td>
+                                    <td>₱{{ yearly_quota|floatformat:2|intcomma }}</td>
                                     <td>
                                         {% if monthly_stats %}
                                             <div class="progress" style="height: 20px;">
@@ -63,7 +64,7 @@
                                                 </div>
                                             </div>
                                             <small class="text-muted">
-                                                {{ monthly_stats.total_amount|floatformat:2 }} / {{ monthly_stats.monthly_quota|floatformat:2 }}
+                                                {{ monthly_stats.total_amount|floatformat:2|intcomma }} / {{ monthly_stats.monthly_quota|floatformat:2|intcomma }}
                                                 for {{ current_month }} {{ current_year }}
                                             </small>
                                         {% else %}

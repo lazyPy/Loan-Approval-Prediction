@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="card">
@@ -101,11 +102,11 @@
 
         // Calculate down payment amount
         const downPaymentAmount = vehicleValue * downPaymentPercentage;
-        document.getElementById('down_payment_amount').value = downPaymentAmount.toFixed(2);
+        document.getElementById('down_payment_amount').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(downPaymentAmount);
 
         // Calculate loan amount applied (Principal)
         const loanAmountApplied = vehicleValue - downPaymentAmount;
-        document.getElementById('loan_amount_applied').value = loanAmountApplied.toFixed(2);
+        document.getElementById('loan_amount_applied').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(loanAmountApplied);
 
         // Calculate monthly amortization using the formula:
         // (((Loan Amount × Interest Rate) × Loan Term) + Loan Amount) / Loan Term
@@ -119,8 +120,8 @@
             monthlyAmortization = totalAmount / loanTerm;  // Divide by loan term to get monthly payment
         }
 
-        document.getElementById('monthly_amortization').value = monthlyAmortization.toFixed(2);
-        document.getElementById('total_amount_payable').value = totalAmount.toFixed(2);
+        document.getElementById('monthly_amortization').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(monthlyAmortization);
+        document.getElementById('total_amount_payable').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalAmount);
     }
 
     // Add event listeners to form fields

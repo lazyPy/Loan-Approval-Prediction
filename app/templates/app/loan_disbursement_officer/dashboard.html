@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-4">
@@ -42,7 +43,7 @@
                                         <td>{{ loan.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             {% if loan.loan_details %}
-                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}
+                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}
                                             {% else %}
                                                 N/A
                                             {% endif %}
@@ -56,7 +57,7 @@
                                         </td>
                                         <td>
                                             {% if loan.loan_details %}
-                                                ₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}
+                                                ₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}
                                             {% else %}
                                                 N/A
                                             {% endif %}
@@ -120,7 +121,7 @@
                                         <td>{{ loan.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             {% if loan.loan_details %}
-                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}
+                                                ₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}
                                             {% else %}
                                                 N/A
                                             {% endif %}
@@ -134,7 +135,7 @@
                                         </td>
                                         <td>
                                             {% if loan.loan_details %}
-                                                ₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}
+                                                ₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}
                                             {% else %}
                                                 N/A
                                             {% endif %}

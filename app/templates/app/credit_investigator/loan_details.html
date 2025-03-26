@@ -1,5 +1,6 @@
 {% extends 'app/base.html' %}
 {% load custom_filters %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-4">
@@ -131,7 +132,7 @@
                                     </tr>
                                     <tr>
                                         <th>Monthly Income:</th>
-                                        <td>₱{{ loan.employment.monthly_net_income|floatformat:2 }}</td>
+                                        <td>₱{{ loan.employment.monthly_net_income|floatformat:2|intcomma }}</td>
                                     </tr>
                                 </table>
                             {% else %}
@@ -155,15 +156,15 @@
                                     </tr>
                                     <tr>
                                         <th>Vehicle Value:</th>
-                                        <td>₱{{ loan.loan_details.estimated_vehicle_value|floatformat:2 }}</td>
+                                        <td>₱{{ loan.loan_details.estimated_vehicle_value|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <th>Down Payment:</th>
-                                        <td>{{ loan.loan_details.down_payment_percentage|mul:100|floatformat:2 }}% (₱{{ loan.loan_details.estimated_vehicle_value|mul:loan.loan_details.down_payment_percentage|floatformat:2 }})</td>
+                                        <td>{{ loan.loan_details.down_payment_percentage|mul:100|floatformat:2 }}% (₱{{ loan.loan_details.estimated_vehicle_value|mul:loan.loan_details.down_payment_percentage|floatformat:2|intcomma }})</td>
                                     </tr>
                                     <tr>
                                         <th>Loan Amount:</th>
-                                        <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2 }}</td>
+                                        <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <th>Term:</th>
@@ -232,15 +233,15 @@
                                     <table class="table">
                                         <tr>
                                             <th>Applicant Income:</th>
-                                            <td>₱{{ loan.cash_flow.applicant_total_income|floatformat:2 }}</td>
+                                            <td>₱{{ loan.cash_flow.applicant_total_income|floatformat:2|intcomma }}</td>
                                         </tr>
                                         <tr>
                                             <th>Spouse Income:</th>
-                                            <td>₱{{ loan.cash_flow.spouse_total_income|floatformat:2 }}</td>
+                                            <td>₱{{ loan.cash_flow.spouse_total_income|floatformat:2|intcomma }}</td>
                                         </tr>
                                         <tr>
                                             <th>Total Income:</th>
-                                            <td>₱{{ loan.cash_flow.total_income|floatformat:2 }}</td>
+                                            <td>₱{{ loan.cash_flow.total_income|floatformat:2|intcomma }}</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -249,16 +250,16 @@
                                     <table class="table">
                                         <tr>
                                             <th>Total Expenses:</th>
-                                            <td>₱{{ loan.cash_flow.total_expenses|floatformat:2 }}</td>
+                                            <td>₱{{ loan.cash_flow.total_expenses|floatformat:2|intcomma }}</td>
                                         </tr>
                                         <tr>
                                             <th>Net Disposal:</th>
-                                            <td>₱{{ loan.cash_flow.net_disposal|floatformat:2 }}</td>
+                                            <td>₱{{ loan.cash_flow.net_disposal|floatformat:2|intcomma }}</td>
                                         </tr>
                                         {% if loan.loan_details %}
                                             <tr>
                                                 <th>Monthly Payment:</th>
-                                                <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2 }}</td>
+                                                <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}</td>
                                             </tr>
                                         {% endif %}
                                     </table>
@@ -281,7 +282,7 @@
                                 <table class="table">
                                     <tr>
                                         <th>Loan Amount:</th>
-                                        <td>₱{{ loan_amortization.loan_amount|floatformat:2 }}</td>
+                                        <td>₱{{ loan_amortization.loan_amount|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <th>Interest Rate:</th>
@@ -293,15 +294,15 @@
                                     </tr>
                                     <tr>
                                         <th>Monthly Payment:</th>
-                                        <td>₱{{ loan_amortization.monthly_payment|floatformat:2 }}</td>
+                                        <td>₱{{ loan_amortization.monthly_payment|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <th>Total Payment:</th>
-                                        <td>₱{{ loan_amortization.total_payment|floatformat:2 }}</td>
+                                        <td>₱{{ loan_amortization.total_payment|floatformat:2|intcomma }}</td>
                                     </tr>
                                     <tr>
                                         <th>Total Interest:</th>
-                                        <td>₱{{ loan_amortization.total_interest|floatformat:2 }}</td>
+                                        <td>₱{{ loan_amortization.total_interest|floatformat:2|intcomma }}</td>
                                     </tr>
                                 </table>
                             </div>

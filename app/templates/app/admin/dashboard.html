@@ -1,5 +1,6 @@
 {% extends 'app/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}System Administrator Dashboard{% endblock %}
 
@@ -56,7 +57,7 @@
                         <div class="col-md-4 mb-3">
                             <div class="card bg-info text-white h-100">
                                 <div class="card-body text-center d-flex flex-column justify-content-center">
-                                    <h1 class="text-nowrap text-truncate">₱{{ total_disbursed|default:0|floatformat:2 }}</h1>
+                                    <h1 class="text-nowrap text-truncate">₱{{ total_disbursed|default:0|floatformat:2|intcomma }}</h1>
                                     <h6>Total Disbursed</h6>
                                 </div>
                             </div>
@@ -83,8 +84,8 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>₱{{ monthly_quota|default:0|floatformat:2 }}</td>
-                                            <td>₱{{ monthly_progress|default:0|floatformat:2 }}</td>
+                                            <td>₱{{ monthly_quota|default:0|floatformat:2|intcomma }}</td>
+                                            <td>₱{{ monthly_progress|default:0|floatformat:2|intcomma }}</td>
                                             <td>
                                                 {% if monthly_quota_met %}
                                                 <span class="badge bg-success">Met</span>
