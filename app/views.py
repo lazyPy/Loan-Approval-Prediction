@@ -392,8 +392,11 @@ def home(request):
 @login_required
 @role_required(['CREDIT'])
 def credit_investigator_dashboard(request):
-    # Get all loan applications that have been approved by marketing officer
-    loans = Borrower.objects.filter(status__status='PROCEED_CI').order_by('-created_at')
+    # Get all loan applications including both pending and completed investigations
+    loans = Borrower.objects.filter(
+        models.Q(status__status='PROCEED_CI') |  # Pending investigations
+        models.Q(credit_investigator_remarks__isnull=False)  # Completed investigations
+    ).order_by('-created_at')
     return render(request, 'app/credit_investigator/dashboard.html', {'loans': loans})
 
 @login_required
@@ -728,9 +731,10 @@ def loan_approval_officer_loan_details(request, loan_id):
 @login_required
 @role_required(['DISBURSEMENT'])
 def loan_disbursement_officer_dashboard(request):
-    # Get all loan applications that have been approved by loan approval officer
+    # Get all loan applications that are either pending disbursement or have been processed
     loans = Borrower.objects.filter(
-        Q(status__status='PROCEED_LDO')
+        Q(status__status='PROCEED_LDO') |  # Pending disbursements
+        Q(loan_disbursement_officer_remarks__isnull=False)  # Processed disbursements
     ).distinct().order_by('-created_at')
     
     return render(request, 'app/loan_disbursement_officer/dashboard.html', {'loans': loans})
@@ -1187,10 +1191,7 @@ def area_manager_dashboard(request):
                 start_date__gte=dates['twelve_weeks_ago']
             ).order_by('-year', '-month', '-week')
             
-            monthly_stats = MonthlyLoanDisbursement.objects.filter(
-                year__gte=dates['twelve_months_ago'].year,
-                month__gte=dates['twelve_months_ago'].month
-            ).order_by('-year', '-month')
+            monthly_stats = MonthlyLoanDisbursement.objects.all().order_by('-year', '-month')[:12]
             
             yearly_stats = YearlyLoanDisbursement.objects.all().order_by('-year')
             

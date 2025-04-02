@@ -349,86 +349,99 @@
     </div>
 </div>
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+{# Move the script outside of extra_js block and into the main content block #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Store chart data
-const chartData = {
-    daily: {
-        labels: {{ daily_labels|safe }},
-        data: {{ daily_data|safe }}
-    },
-    weekly: {
-        labels: {{ weekly_labels|safe }},
-        data: {{ weekly_data|safe }}
-    },
-    monthly: {
-        labels: {{ monthly_labels|safe }},
-        data: {{ monthly_data|safe }}
-    },
-    yearly: {
-        labels: {{ yearly_labels|safe }},
-        data: {{ yearly_data|safe }}
-    }
-};
+// Ensure the script only runs once when the DOM is fully loaded
+if (!window.chartInitialized) {
+    window.chartInitialized = true;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Store chart data
+        const chartData = {
+            daily: {
+                labels: {{ daily_labels|safe }},
+                data: {{ daily_data|safe }}
+            },
+            weekly: {
+                labels: {{ weekly_labels|safe }},
+                data: {{ weekly_data|safe }}
+            },
+            monthly: {
+                labels: {{ monthly_labels|safe }},
+                data: {{ monthly_data|safe }}
+            },
+            yearly: {
+                labels: {{ yearly_labels|safe }},
+                data: {{ yearly_data|safe }}
+            }
+        };
 
-// Chart configuration factory
-const createChartConfig = (type, data, labels) => ({
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: `${type} Loan Disbursement`,
-            data: data,
-            backgroundColor: type === 'Daily' ? 'rgba(75, 192, 192, 0.2)' :
-                           type === 'Weekly' ? 'rgba(54, 162, 235, 0.2)' :
-                           type === 'Monthly' ? 'rgba(255, 159, 64, 0.2)' :
-                           'rgba(153, 102, 255, 0.2)',
-            borderColor: type === 'Daily' ? 'rgba(75, 192, 192, 1)' :
-                        type === 'Weekly' ? 'rgba(54, 162, 235, 1)' :
-                        type === 'Monthly' ? 'rgba(255, 159, 64, 1)' :
-                        'rgba(153, 102, 255, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Amount (₱)'
+        // Chart configuration factory
+        const createChartConfig = (type, data, labels) => ({
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `${type} Loan Disbursement`,
+                    data: data,
+                    backgroundColor: type === 'Daily' ? 'rgba(75, 192, 192, 0.2)' :
+                                   type === 'Weekly' ? 'rgba(54, 162, 235, 0.2)' :
+                                   type === 'Monthly' ? 'rgba(255, 159, 64, 0.2)' :
+                                   'rgba(153, 102, 255, 0.2)',
+                    borderColor: type === 'Daily' ? 'rgba(75, 192, 192, 1)' :
+                                type === 'Weekly' ? 'rgba(54, 162, 235, 1)' :
+                                type === 'Monthly' ? 'rgba(255, 159, 64, 1)' :
+                                'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Amount (₱)'
+                        }
+                    }
                 }
             }
-        }
-    }
-});
+        });
 
-// Initialize charts when tab is shown
-document.addEventListener('DOMContentLoaded', () => {
-    const charts = {};
-    
-    // Create daily chart immediately as it's visible
-    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-    charts.daily = new Chart(dailyCtx, createChartConfig('Daily', chartData.daily.data, chartData.daily.labels));
-    
-    // Initialize other charts only when their tabs are shown
-    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', (e) => {
-            const type = e.target.id.split('-')[0];
-            if (!charts[type]) {
-                const ctx = document.getElementById(`${type}Chart`).getContext('2d');
-                charts[type] = new Chart(ctx, createChartConfig(
-                    type.charAt(0).toUpperCase() + type.slice(1),
-                    chartData[type].data,
-                    chartData[type].labels
-                ));
+        const charts = {};
+        
+        // Function to safely create or update a chart
+        const createOrUpdateChart = (type, chartId) => {
+            const canvas = document.getElementById(chartId);
+            if (!canvas) return;
+            
+            // Destroy existing chart if it exists
+            if (charts[type]) {
+                charts[type].destroy();
             }
+            
+            const ctx = canvas.getContext('2d');
+            charts[type] = new Chart(ctx, createChartConfig(
+                type.charAt(0).toUpperCase() + type.slice(1),
+                chartData[type].data,
+                chartData[type].labels
+            ));
+        };
+        
+        // Create daily chart immediately as it's visible
+        createOrUpdateChart('daily', 'dailyChart');
+        
+        // Initialize other charts only when their tabs are shown
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (e) => {
+                const type = e.target.id.split('-')[0];
+                createOrUpdateChart(type, `${type}Chart`);
+            });
         });
     });
-});
+}
 </script>
-{% endblock %}
 {% endblock %} 

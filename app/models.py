@@ -469,56 +469,75 @@ class CreditInvestigatorRemarks(models.Model):
     
     def _calculate_credit_risk(self):
         """Calculate credit risk based on various factors using a point system"""
-        total_points = 0
-        
-        # 1. Points for Residency and Citizenship (0-10 points)
-        if hasattr(self.loan, 'personal_info'):
-            residency = self.loan.personal_info.residency_and_citizenship
-            if residency == 'RFC':  # Resident Filipino Citizen
-                total_points += 10
-            elif residency == 'RA':  # Resident Alien
-                total_points += 5
-            elif residency == 'NRCA':  # Non-Resident Citizen/Alien
-                total_points += 0
-        
-        # 2. Points for Source of Fund (0-10 points)
-        if hasattr(self.loan, 'employment'):
-            source_of_funds = self.loan.employment.source_of_funds
-            if source_of_funds in ['Salary', 'Income from Business']:
-                total_points += 10
-            elif source_of_funds == 'Support From Relative':
-                total_points += 5
-            elif source_of_funds in ['Commissions', 'Remittance']:
-                total_points += 0
-        
-        # 3. Points for Employment Status (0-10 points)
-        if hasattr(self.loan, 'employment'):
-            employment_status = self.loan.employment.employment_status
-            if employment_status in ['Employee', 'Registered Business', 'Retired']:
-                total_points += 10
-            elif employment_status in ['Unemployed', 'Student']:
-                total_points += 5
-            elif employment_status in ['Lawyer', 'Accountant', 'Gaming', 'Unemployed_IND']:
-                total_points += 0
-        
-        # 4. Points for Suspicious Indicator (0-10 points)
-        if self.suspicious_indicator == 0:  # None
-            total_points += 10
-        else:  # Suspicious Transaction
-            total_points += 0
-        
-        # Determine credit risk assessment based on total points (0-40)
-        if 0 <= total_points <= 13:
+        if not hasattr(self.loan, 'personal_info') or not hasattr(self.loan, 'employment'):
             self.credit_risk_assessment = 'HIGH'
-        elif 14 <= total_points <= 26:
+            return
+
+        # Get required values from loan
+        residency = self.loan.personal_info.residency_and_citizenship
+        source_of_funds = self.loan.employment.source_of_funds
+        employment_status = self.loan.employment.employment_status
+        suspicious_indicator = 'None' if self.suspicious_indicator == 0 else 'Suspicious Transaction'
+
+        # Points for Residency and Citizenship
+        if residency == "Resident Filipino Citizen":
+            points1 = 10
+        elif residency == "Resident Alien":
+            points1 = 5
+        elif residency == "Non-Resident Citizen/Alien":
+            points1 = 0
+        else:
+            self.credit_risk_assessment = 'HIGH'
+            return
+
+        # Points for Source of Fund
+        if source_of_funds in ["Salary", "Income from Business"]:
+            points2 = 10
+        elif source_of_funds == "Support From Relative":
+            points2 = 5
+        elif source_of_funds in ["Commissions", "Remittance"]:
+            points2 = 0
+        else:
+            self.credit_risk_assessment = 'HIGH'
+            return
+
+        # Points for Employment Status / Nature of Business
+        if employment_status in ["Employee", "Registered Business", "Retired"]:
+            points3 = 10
+        elif employment_status in ["Unemployed", "Student"]:
+            points3 = 5
+        elif employment_status in [
+            "Lawyer",
+            "Accountant",
+            "Gaming",
+            "Unemployed_IND"
+        ]:
+            points3 = 0
+        else:
+            self.credit_risk_assessment = 'HIGH'
+            return
+
+        # Points for Suspicious Indicator
+        if suspicious_indicator == "None":
+            points4 = 10
+        elif suspicious_indicator == "Suspicious Transaction":
+            points4 = 0
+        else:
+            self.credit_risk_assessment = 'HIGH'
+            return
+
+        # Calculate total points
+        result = points1 + points2 + points3 + points4
+
+        # Determine credit assessment
+        if 0 <= result <= 13:
+            self.credit_risk_assessment = 'HIGH'
+        elif 14 <= result <= 26:
             self.credit_risk_assessment = 'MEDIUM'
-        elif 27 <= total_points <= 40:
+        elif 27 <= result <= 40:
             self.credit_risk_assessment = 'LOW'
         else:
-            # Fallback in case of unexpected point total
-            self.credit_risk_assessment = 'HIGH'
-        
-        return self.credit_risk_assessment
+            self.credit_risk_assessment = 'HIGH'  # Default to high risk for invalid values
 
 class LoanApprovalOfficerRemarks(models.Model):
     APPROVAL_CHOICES = [
