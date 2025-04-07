@@ -79,8 +79,9 @@ class PersonalInformation(models.Model):
 
 class ContactAndAddress(models.Model):
     RESIDENT_STATUS_CHOICES = [
-        ('Residence', 'Residence'),
-        ('Renting', 'Renting')
+        ('Owned', 'Owned'),
+        ('Renting', 'Renting'),
+        ('Used Free', 'Used Free')
     ]
     
     LENGTH_OF_STAY_CHOICES = [
