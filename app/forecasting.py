@@ -643,54 +643,53 @@ def generate_initial_images():
                 
                 # Try to generate model performance and forecast
                 if len(resampled_df) >= required_periods:
-                        # Try to load model for this frequency
-                        model, scaler, seq_length, features = load_saved_model(freq)
-                        if model is not None:
-                            # Create features
-                            feature_df = create_features(resampled_df)
-                            if len(feature_df) >= seq_length and all(f in feature_df.columns for f in features):
-                                # Select features used by model
-                                feature_df = feature_df[features]
-                                
-                                # Generate model performance visualization
-                                split_idx = int(len(feature_df) * 0.8)
-                                train_df = feature_df.iloc[:split_idx]
-                                test_df = feature_df.iloc[split_idx:]
-                                
-                                if len(test_df) >= seq_length:
+                    # Try to load model for this frequency
+                    model, scaler, seq_length, features = load_saved_model(freq)
+                    if model is not None:
+                        # Create features
+                        feature_df = create_features(resampled_df)
+                        if len(feature_df) >= seq_length and all(f in feature_df.columns for f in features):
+                            # Select features used by model
+                            feature_df = feature_df[features]
+                            
+                            # Generate model performance visualization
+                            split_idx = int(len(feature_df) * 0.8)
+                            train_df = feature_df.iloc[:split_idx]
+                            test_df = feature_df.iloc[split_idx:]
+                            
+                            if len(test_df) >= seq_length:
                                 # Generate predictions for model performance
-                                    predictions = []
-                                    actual_values = test_df['Sales'].values
-                                    
-                                    for i in range(len(test_df) - seq_length):
-                                        sequence = test_df.iloc[i:i+seq_length].values
-                                        sequence_scaled = scaler.transform(sequence)
-                                        sequence_scaled = sequence_scaled.reshape(1, seq_length, len(features))
-                                        pred = model.predict(sequence_scaled, verbose=0)
-                                        pred_scaled = np.zeros((1, scaler.scale_.shape[0]))
-                                        pred_scaled[0, 0] = pred[0, 0]
-                                        prediction = scaler.inverse_transform(pred_scaled)[0, 0]
-                                        predictions.append(prediction)
-                                    
-                                    if len(predictions) > 0:
-                                        # Plot model performance
-                                        plt.figure(figsize=(12, 6))
-                                        actual_dates = test_df.index[seq_length:]
-                                        plt.plot(actual_dates, actual_values[seq_length:], label='Actual', marker='o')
-                                        pred_dates = test_df.index[seq_length:len(actual_dates)]
-                                        plt.plot(pred_dates, predictions[:len(pred_dates)], label='Predicted', marker='x')
-                                        plt.title(f'{freq_name} Frequency - Model Performance')
+                                predictions = []
+                                actual_values = test_df['Sales'].values
+                                
+                                for i in range(len(test_df) - seq_length):
+                                    sequence = test_df.iloc[i:i+seq_length].values
+                                    sequence_scaled = scaler.transform(sequence)
+                                    sequence_scaled = sequence_scaled.reshape(1, seq_length, len(features))
+                                    pred = model.predict(sequence_scaled, verbose=0)
+                                    pred_scaled = np.zeros((1, scaler.scale_.shape[0]))
+                                    pred_scaled[0, 0] = pred[0, 0]
+                                    prediction = scaler.inverse_transform(pred_scaled)[0, 0]
+                                    predictions.append(prediction)
+                                
+                                if len(predictions) > 0:
+                                    # Plot model performance
+                                    plt.figure(figsize=(12, 6))
+                                    actual_dates = test_df.index[seq_length:]
+                                    plt.plot(actual_dates, actual_values[seq_length:], label='Actual', marker='o')
+                                    pred_dates = test_df.index[seq_length:len(actual_dates)]
+                                    plt.plot(pred_dates, predictions[:len(pred_dates)], label='Predicted', marker='x')
+                                    plt.title(f'{freq_name} Frequency - Model Performance')
                                     plt.xlabel('Date')
-                                        plt.ylabel('Loan Amount')
-                                        plt.legend()
-                                        plt.grid(True)
-                                    plt.tight_layout()
-                                        
+                                    plt.ylabel('Loan Amount')
+                                    plt.legend()
+                                    plt.grid(True)
+                                    
                                     # Save model performance image
-                                        perf_filepath = os.path.join('static', 'img', f'{freq_name}_Frequency_-_Model_Performance.png')
-                                        plt.savefig(perf_filepath)
-                                        plt.close()
-                                        print(f"Generated model performance image: {perf_filepath}")
+                                    perf_filepath = os.path.join('static', 'img', f'{freq_name}_Frequency_-_Model_Performance.png')
+                                    plt.savefig(perf_filepath)
+                                    plt.close()
+                                    print(f"Generated model performance image: {perf_filepath}")
                                     
                                     # Generate future forecast
                                     last_sequence = test_df.iloc[-seq_length:].values
@@ -708,15 +707,15 @@ def generate_initial_images():
                                     plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linewidth=2)
                                     plt.title(f'{freq_name} Frequency - Forecast')
                                     plt.xlabel('Date')
-                    plt.ylabel('Loan Amount')
-                    plt.legend()
-                    plt.grid(True)
+                                    plt.ylabel('Loan Amount')
+                                    plt.legend()
+                                    plt.grid(True)
                                     plt.tight_layout()
-                    
+                                    
                                     # Save forecast image
                                     forecast_filepath = os.path.join('static', 'img', f'{freq_name}_Frequency_-_Forecast.png')
                                     plt.savefig(forecast_filepath)
-                    plt.close()
+                                    plt.close()
                                     print(f"Generated future forecast image: {forecast_filepath}")
                                     
                                     # Create decomposition plots
