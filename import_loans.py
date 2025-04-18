@@ -6,6 +6,10 @@ from datetime import datetime
 
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+
+# Force using production database (Render PostgreSQL)
+os.environ['RENDER'] = 'true'  # This will trigger the production database settings
+
 django.setup()
 
 from app.models import (
