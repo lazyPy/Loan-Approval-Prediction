@@ -17,11 +17,11 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Borrower, LoanDisbursementOfficerRemarks, LoanDetails
-import keras.backend as K
+import random
 
 # Set random seeds for reproducibility
 np.random.seed(42)
-K.set_random_seed(42)
+random.seed(42)
 
 def get_recent_completed_loans():
     """Get recent completed loans data for forecasting"""
