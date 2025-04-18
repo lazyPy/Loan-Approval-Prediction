@@ -1,0 +1,176 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1 class="display-4 fw-bold mb-3">Contact Us</h1>
+                <p class="lead mb-0">We're here to help with any questions you might have about our loan services</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Information Section -->
+<div class="container py-5">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+                        <i class="fas fa-map-marker-alt fa-2x text-primary"></i>
+                    </div>
+                    <h4>Visit Us</h4>
+                    <p class="text-muted">5th Floor, Prosperity Building<br>1103 Quezon Avenue, Quezon City<br>Metro Manila, Philippines</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+                        <i class="fas fa-phone-alt fa-2x text-primary"></i>
+                    </div>
+                    <h4>Call Us</h4>
+                    <p class="text-muted">
+                        Main Office: (+63) 2-8888-7777<br>
+                        Customer Support: (+63) 917-123-4567
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-flex mb-3">
+                        <i class="fas fa-envelope fa-2x text-primary"></i>
+                    </div>
+                    <h4>Email Us</h4>
+                    <p class="text-muted">
+                        support@financingsolutions.ph<br>
+                        loans@financingsolutions.ph
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Useful Information Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+                    
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    What documents do I need to apply for a vehicle loan?
+                                </button>
+                            </h3>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>To apply for a vehicle loan, you'll need to provide the following documents:</p>
+                                    <ul>
+                                        <li>Valid government-issued ID (e.g., passport, driver's license)</li>
+                                        <li>Proof of income (e.g., pay slips, income tax returns)</li>
+                                        <li>Proof of address (e.g., utility bills)</li>
+                                        <li>Vehicle details and quotation from the dealer</li>
+                                    </ul>
+                                    <p>Additional documents may be required depending on your employment status and loan amount.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    How long does the loan approval process take?
+                                </button>
+                            </h3>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>Our loan approval process typically takes 3-5 business days after all required documents have been submitted. The process includes:</p>
+                                    <ol>
+                                        <li>Initial document verification (1 day)</li>
+                                        <li>Credit investigation (1-2 days)</li>
+                                        <li>Loan approval (1-2 days)</li>
+                                    </ol>
+                                    <p>Once approved, the loan disbursement usually occurs within 24-48 hours.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    What are the current interest rates and loan terms?
+                                </button>
+                            </h3>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>Our current interest rates start from 10% per annum. We offer flexible loan terms ranging from 12 to 36 months.</p>
+                                    <p>The exact interest rate applicable to your loan will depend on factors such as:</p>
+                                    <ul>
+                                        <li>Loan amount</li>
+                                        <li>Loan term</li>
+                                        <li>Your credit history</li>
+                                        <li>Down payment percentage</li>
+                                    </ul>
+                                    <p>For a personalized quote, please use our <a href="{% url 'loan_computation' %}">Loan Calculator</a> or contact our loan officers.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0">
+                            <h3 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    How can I check the status of my loan application?
+                                </button>
+                            </h3>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p>You can check the status of your loan application in several ways:</p>
+                                    <ol>
+                                        <li>Visit our <a href="{% url 'check_status' %}">Check Status</a> page and enter your reference number.</li>
+                                        <li>Call our customer support at (+63) 917-123-4567.</li>
+                                        <li>Email us at support@financingsolutions.ph with your reference number in the subject line.</li>
+                                        <li>Visit our office and speak with a loan officer.</li>
+                                    </ol>
+                                    <p>Please keep your reference number handy as it will be required to retrieve your application status.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-4 bg-light rounded">
+                        <h4><i class="fas fa-clock text-primary me-2"></i> Business Hours</h4>
+                        <div class="row mt-3">
+                            <div class="col-md-4 mb-2">
+                                <strong>Monday - Friday:</strong> 8:30 AM - 5:30 PM
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <strong>Saturday:</strong> 9:00 AM - 1:00 PM
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <strong>Sunday & Holidays:</strong> Closed
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="px-0">
+        <div class="ratio ratio-21x9" style="max-height: 400px;">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.593398609677!2d121.00384721153749!3d14.622223485807783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b6169f2225df%3A0x39c3e0acfe0de976!2s1103%20Quezon%20Ave%2C%20Santa%20Cruz%2C%20Quezon%20City%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1744814287392!5m2!1sen!2sph" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

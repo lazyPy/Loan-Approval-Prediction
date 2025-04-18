@@ -216,7 +216,7 @@ class LoanDisbursementOfficerRemarksForm(forms.ModelForm):
         exclude = ['loan', 'loan_disbursement_officer_name', 'created_at', 'updated_at']
         widgets = {
             'disbursement_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'loan_due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'maturity_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'status': forms.Select(attrs={'class': 'form-control'}),
         }

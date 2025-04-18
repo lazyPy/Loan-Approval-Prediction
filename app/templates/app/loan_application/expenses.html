@@ -72,6 +72,48 @@
         }
     });
 
+    // Simple comma formatting for expense fields
+    function formatWithCommas(input) {
+        if (!input) return;
+        
+        // Convert to text type for comma formatting
+        input.setAttribute('type', 'text');
+        
+        input.addEventListener('input', function() {
+            // Get cursor position and clean input value
+            const pos = this.selectionStart;
+            const rawValue = this.value.replace(/,/g, '').replace(/[^\d]/g, '');
+            
+            // Add commas using regex
+            if (rawValue) {
+                const formatted = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                
+                if (this.value !== formatted) {
+                    const diff = formatted.length - this.value.length;
+                    this.value = formatted;
+                    this.setSelectionRange(pos + diff, pos + diff);
+                }
+            }
+            
+            // Create hidden input with numeric value
+            const name = this.name;
+            if (!this.dataset.hasHidden) {
+                this.name = name + '_display';
+                this.dataset.hasHidden = 'true';
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = name;
+                hidden.value = rawValue;
+                this.after(hidden);
+            } else {
+                this.nextElementSibling.value = rawValue;
+            }
+            
+            // Trigger calculation
+            calculateTotal();
+        });
+    }
+
     // Format currency inputs and calculate total
     const expenseFields = [
         '{{ form.food_and_groceries.id_for_label }}',
@@ -83,22 +125,24 @@
     function calculateTotal() {
         let total = 0;
         expenseFields.forEach(fieldId => {
-            const value = parseFloat(document.getElementById(fieldId).value) || 0;
+            const field = document.getElementById(fieldId);
+            // Get value without commas for calculation
+            const value = parseFloat(field.value.replace(/,/g, '')) || 0;
             total += value;
         });
-        document.getElementById('total_expenses').value = total.toFixed(2);
+        
+        // Format total with commas
+        document.getElementById('total_expenses').value = total.toLocaleString('en-US');
     }
 
-    // Add event listeners to expense fields
+    // Apply formatting to expense fields
     expenseFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        field.addEventListener('input', function() {
-            if (this.value < 0) {
-                this.value = 0;
-            }
-            calculateTotal();
-        });
+        formatWithCommas(document.getElementById(fieldId));
     });
+    
+    // Apply formatting to total field (read-only)
+    const totalField = document.getElementById('total_expenses');
+    totalField.setAttribute('type', 'text');
 
     // Calculate initial total
     calculateTotal();

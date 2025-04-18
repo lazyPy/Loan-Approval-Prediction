@@ -283,7 +283,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/apply/' in request.path %}active{% endif %}" href="{% url 'loan_application' %}">
+                        <a class="nav-link {% if '/apply/' in request.path %}active{% endif %}" href="#" data-bs-toggle="modal" data-bs-target="#dataPrivacyModal">
                             <i class="fas fa-file-alt me-1"></i>Apply
                         </a>
                     </li>
@@ -392,7 +392,7 @@
                 <div>
                     <a href="#">Privacy</a>
                     <a href="#">Terms</a>
-                    <a href="#">Contact</a>
+                    <a href="{% url 'contact_us' %}">Contact</a>
                 </div>
             </div>
         </div>
@@ -444,5 +444,81 @@
     </script>
 
     {% block extra_js %}{% endblock %}
+    
+    <!-- Data Privacy Notice Modal -->
+    <div class="modal fade" id="dataPrivacyModal" tabindex="-1" aria-labelledby="dataPrivacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="dataPrivacyModalLabel">DATA PRIVACY NOTICE</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Financing Solutions Incorporated values your privacy and is committed to protecting your personal data. This Data Privacy Notice outlines how we collect, use, store, and protect the information you provide through our loan application platform.</p>
+                    
+                    <h6 class="fw-bold mt-3">1. Collection of Personal Data</h6>
+                    <p>We collect personal and financial information from you when you fill out our loan application form, including but not limited to:</p>
+                    <ul>
+                        <li>Full name</li>
+                        <li>Date of birth</li>
+                        <li>Government-issued ID</li>
+                        <li>Contact details (email, phone number, address)</li>
+                        <li>Employment and income details</li>
+                        <li>Bank account or financial information</li>
+                    </ul>
+                    
+                    <h6 class="fw-bold mt-3">2. Purpose of Data Processing</h6>
+                    <p>Your data is collected for the following purposes:</p>
+                    <ul>
+                        <li>To assess your loan eligibility and process your application</li>
+                        <li>To verify your identity and conduct background checks</li>
+                        <li>To manage your account and communicate with you</li>
+                        <li>To comply with legal and regulatory requirements</li>
+                    </ul>
+                    
+                    <h6 class="fw-bold mt-3">3. Data Sharing and Disclosure</h6>
+                    <p>We may share your information with:</p>
+                    <ul>
+                        <li>Government agencies and regulatory bodies, as required by law</li>
+                        <li>Authorized third-party service providers (e.g., credit bureaus, financial institutions)</li>
+                    </ul>
+                    <p>We ensure that all third parties handle your data in compliance with applicable data protection laws.</p>
+                    
+                    <h6 class="fw-bold mt-3">4. Data Protection and Security</h6>
+                    <p>We implement appropriate technical and organizational measures to safeguard your personal data from unauthorized access, disclosure, alteration, or destruction.</p>
+                    
+                    <h6 class="fw-bold mt-3">5. Data Retention</h6>
+                    <p>We retain your personal data only for as long as necessary to fulfill the purposes outlined in this notice, or as required by law.</p>
+                    
+                    <h6 class="fw-bold mt-3">6. Your Rights</h6>
+                    <p>Under the Data Privacy Act of 2012, you have the right to:</p>
+                    <ul>
+                        <li>Be informed about how your data is being processed</li>
+                        <li>Access and correct your personal data</li>
+                        <li>Object to the processing of your data</li>
+                        <li>Withdraw your consent at any time</li>
+                        <li>Lodge a complaint with the National Privacy Commission (NPC)</li>
+                    </ul>
+                    
+                    <h6 class="fw-bold mt-3">7. Contact Us</h6>
+                    <p>If you have any questions or concerns about this notice or your personal data, please contact our Data Protection Officer at:</p>
+                    <p>
+                        📧 privacy@financingsolutions.ph<br>
+                        📞 (+63) 917-123-4567<br>
+                        🏢 5th Floor, Prosperity Building, Quezon Avenue, Quezon City, Philippines 1103
+                    </p>
+                    
+                    <div class="mt-4 border-top pt-3">
+                        <h6 class="fw-bold">Acknowledgment and Consent</h6>
+                        <p>By clicking "Proceed", you acknowledge that you have read and understood this Data Privacy Notice, and you give your full consent to the collection, use, and processing of your personal data in accordance with the terms stated above.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="{% url 'loan_application' %}" class="btn btn-primary">Proceed</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

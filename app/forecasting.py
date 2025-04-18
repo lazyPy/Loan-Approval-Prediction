@@ -1,6 +1,10 @@
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend to avoid Tkinter issues
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from statsmodels.tsa.seasonal import seasonal_decompose
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
@@ -10,32 +14,68 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import os
 import joblib
 from math import sqrt
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import datetime, timedelta
+from .models import Borrower, LoanDisbursementOfficerRemarks, LoanDetails
 
 # Set random seeds for reproducibility
 np.random.seed(42)
 tf.random.set_seed(42)
 
-def load_and_preprocess_data(file_path):
-    df = pd.read_csv(file_path)
-    df['Date'] = pd.to_datetime(df['Date'], format='%m/%d/%Y')
-    df['Sales'] = df['Sales'].astype(str).str.replace(',', '').str.replace('"', '').astype(float)
-    df.set_index('Date', inplace=True)
+def get_recent_completed_loans():
+    """Get recent completed loans data for forecasting"""
+    completed_loans = Borrower.objects.filter(
+        loan_disbursement_officer_remarks__status='COMPLETED'
+    ).select_related(
+        'loan_details',
+        'loan_disbursement_officer_remarks'
+    ).order_by('loan_disbursement_officer_remarks__disbursement_date')
+    
+    # Create DataFrame from completed loans
+    data = []
+    for loan in completed_loans:
+        if hasattr(loan, 'loan_details') and hasattr(loan, 'loan_disbursement_officer_remarks'):
+            data.append({
+                'Date': loan.loan_disbursement_officer_remarks.disbursement_date,
+                'Sales': float(loan.loan_details.loan_amount_applied),
+                'NumberOfAccount': 1  # Each loan represents one account
+            })
+    
+    df = pd.DataFrame(data)
+    if len(df) > 0:
+        # Ensure Date is datetime type and properly set as index
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.set_index('Date', inplace=True)
+        df.sort_index(inplace=True)
+        
+        # Print debug info for troubleshooting
+        print(f"DataFrame index type: {type(df.index)}")
+        print(f"First few rows:\n{df.head()}")
     return df
 
 def resample_data(df, freq):
+    """Resample data to specified frequency"""
+    if len(df) == 0:
+        return pd.DataFrame()
+        
     if freq == 'W':
         daily_df = df.resample('D').asfreq()
-        daily_df = daily_df.ffill()  # Use ffill instead of fillna(method='ffill')
+        daily_df = daily_df.ffill()
         resampled_df = daily_df.resample('W').sum()
-        resampled_df = resampled_df.replace(0, np.nan).ffill()  # Use ffill instead of fillna(method='ffill')
+        resampled_df = resampled_df.replace(0, np.nan).ffill()
     else:
-        # Use updated frequency aliases
         freq_map = {'M': 'ME', 'Q': 'QE'}
         freq_to_use = freq_map.get(freq, freq)
         resampled_df = df.resample(freq_to_use).sum()
     return resampled_df
 
 def create_features(df):
+    """Create time-based features for the model"""
+    if len(df) == 0:
+        return pd.DataFrame()
+        
+    df = df.copy()
     df['month'] = df.index.month
     df['quarter'] = df.index.quarter
     df['year'] = df.index.year
@@ -48,6 +88,7 @@ def create_features(df):
     
     df['Sales_rolling_mean_3'] = df['Sales'].rolling(window=3).mean()
     df['Sales_rolling_std_3'] = df['Sales'].rolling(window=3).std()
+    
     return df.dropna()
 
 def create_sequences(data, seq_length):
@@ -126,21 +167,67 @@ def plot_predictions(y_test, y_pred, title='Actual vs Predicted Values'):
     min_len = min(len(y_test_flat), len(y_pred_flat))
     x_axis = np.arange(min_len)
     
+    # Determine the appropriate x-axis label based on title
+    x_label = 'Date'
+    if 'Weekly' in title:
+        x_label = 'Week'
+        # Create week labels
+        x_ticks = x_axis
+        x_tick_labels = [f"Week {i+1}" for i in x_axis]
+    elif 'Monthly' in title:
+        x_label = 'Month'
+        # Create month labels
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        x_ticks = x_axis
+        x_tick_labels = [months[i % 12] for i in x_axis]
+    elif 'Quarterly' in title:
+        x_label = 'Quarter'
+        # Create quarter labels
+        x_ticks = x_axis
+        x_tick_labels = [f"Q{i+1}" for i in x_axis]
+    else:
+        x_label = 'Data Point'
+        x_ticks = x_axis
+        x_tick_labels = [f"Point {i+1}" for i in x_axis]
+    
     plt.plot(x_axis, y_test_flat[:min_len], label='Actual')
     plt.plot(x_axis, y_pred_flat[:min_len], label='Predicted')
     plt.title(title)
-    plt.xlabel('Time')
-    plt.ylabel('Sales')
+    
+    # Set the custom tick positions and labels
+    plt.xticks(x_ticks, x_tick_labels)
+    
+    plt.xlabel(x_label)
+    plt.ylabel('Loan Amount')
     plt.legend()
     plt.tight_layout()
     
-    filepath = f'static/img/{title.replace(" ", "_").lower()}.png'
+    # Save to the correct static directory
+    filepath = os.path.join('static', 'img', f"{title.replace(' ', '_').lower()}.png")
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     plt.savefig(filepath)
     plt.close()
     return filepath
 
-def generate_future_forecast(model, last_sequence, n_steps, scaler, freq):
+def prepare_last_sequence(df, seq_length, feature_list):
+    """Prepare the last sequence for forecasting"""
+    if len(df) < seq_length:
+        return None
+        
+    # Select only the features used during training
+    df = df[feature_list]
+    
+    # Get the last sequence
+    last_sequence = df.iloc[-seq_length:].values
+    
+    return last_sequence
+
+def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=None):
+    """Generate future forecasts using the loaded model"""
+    if last_sequence is None:
+        return pd.DataFrame()
+        
     curr_seq = last_sequence.copy()
     future_preds = []
     
@@ -158,9 +245,10 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq):
     future_preds_scaled = scaler.inverse_transform(scaled_features)[:, 0]
     
     # Create future dates
-    last_date = pd.to_datetime('2024-12-01')
+    last_date = timezone.now().date()
+    if df is not None and len(df) > 0:
+        last_date = df.index[-1]
     
-    # Use updated frequency aliases
     freq_map = {'W': 'W', 'M': 'ME', 'Q': 'QE'}
     freq_to_use = freq_map.get(freq, freq)
     
@@ -170,8 +258,6 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq):
         future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=n_steps, freq=freq_to_use)
     elif freq == 'Q':
         future_dates = pd.date_range(start=last_date + pd.Timedelta(days=92), periods=n_steps, freq=freq_to_use)
-    else:
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=n_steps, freq='ME')
     
     forecast_df = pd.DataFrame({
         'Date': future_dates,
@@ -181,25 +267,38 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq):
     return forecast_df
 
 def plot_forecast(historical_data, forecast_data, title='Historical Data and Forecast'):
+    """Plot historical data and forecast"""
     plt.figure(figsize=(15, 7))
     
-    historical_dates = historical_data.index
-    historical_values = historical_data['Sales'].values
+    if len(historical_data) > 0:
+        historical_dates = historical_data.index
+        historical_values = historical_data['Sales'].values
+        plt.plot(historical_dates, historical_values, label='Historical Data')
     
     forecast_dates = forecast_data.index
     forecast_values = forecast_data['Forecast'].values
-    
-    plt.plot(historical_dates, historical_values, label='Historical Data')
     plt.plot(forecast_dates, forecast_values, label='Forecast', color='red')
     
     plt.title(title)
-    plt.xlabel('Date')
-    plt.ylabel('Sales')
+    
+    # Set appropriate x-axis label based on title
+    if 'Weekly' in title:
+        x_label = 'Week'
+    elif 'Monthly' in title:
+        x_label = 'Month'
+    elif 'Quarterly' in title:
+        x_label = 'Quarter'
+    else:
+        x_label = 'Date'
+        
+    plt.xlabel(x_label)
+    plt.ylabel('Loan Amount')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     
-    filepath = f'static/img/{title.replace(" ", "_").lower()}.png'
+    # Save to the correct static directory
+    filepath = os.path.join('static', 'img', f"{title.replace(' ', '_').lower()}.png")
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     plt.savefig(filepath)
     plt.close()
@@ -220,11 +319,10 @@ def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/m
         f.write(f"Features: {','.join(features_list)}")
 
 def load_saved_model(freq, models_dir='app/ml_models'):
+    """Load saved model and associated files"""
     try:
-        # First try .keras format
         model_path = f'{models_dir}/lstm_{freq.lower()}_model.keras'
         if not os.path.exists(model_path):
-            # Fall back to .h5 format for backward compatibility
             model_path = f'{models_dir}/lstm_{freq.lower()}_model.h5'
         
         model = load_model(model_path)
@@ -233,7 +331,7 @@ def load_saved_model(freq, models_dir='app/ml_models'):
         with open(f'{models_dir}/config_{freq.lower()}.txt', 'r') as f:
             lines = f.readlines()
             seq_length = int(lines[0].split(': ')[1])
-            features = lines[1].split(': ')[1].split(',')
+            features = lines[1].split(': ')[1].strip().split(',')
         
         return model, scaler, seq_length, features
     except Exception as e:
@@ -242,7 +340,7 @@ def load_saved_model(freq, models_dir='app/ml_models'):
 
 def train_and_save_models(file_path='Sales_Data.csv', models_dir='app/ml_models'):
     os.makedirs('static/img', exist_ok=True)
-    df = load_and_preprocess_data(file_path)
+    df = get_recent_completed_loans()
     results = {}
     
     frequencies = {
@@ -331,7 +429,7 @@ def train_and_save_models(file_path='Sales_Data.csv', models_dir='app/ml_models'
             plot_predictions(eval_results['y_test'], eval_results['y_pred'], f'{freq} Frequency - Actual vs Predicted')
         
         # Generate forecast
-        forecast = generate_future_forecast(model, X_seq[-1], config['forecast_steps'], scaler, freq)
+        forecast = generate_future_forecast(model, X_seq[-1], config['forecast_steps'], scaler, freq, df)
         plot_forecast(resampled_df, forecast, f'{freq} Frequency - Forecast')
         
         # Save model
@@ -341,8 +439,319 @@ def train_and_save_models(file_path='Sales_Data.csv', models_dir='app/ml_models'
     print("All models trained and saved successfully!")
     return results
 
+def make_new_forecast(freq, steps):
+    """Generate a new forecast based on recent completed loans"""
+    try:
+        # Load the saved model and associated files
+        model, scaler, seq_length, features = load_saved_model(freq)
+        if model is None:
+            return None, "Failed to load model"
+        
+        # Get recent completed loans data
+        df = get_recent_completed_loans()
+        if len(df) == 0:
+            return None, "No completed loans data available"
+        
+        # Resample data to specified frequency
+        resampled_df = resample_data(df, freq)
+        
+        # Create features
+        feature_df = create_features(resampled_df)
+        if len(feature_df) < seq_length:
+            return None, f"Insufficient data: need at least {seq_length} periods"
+        
+        # Prepare last sequence for forecasting
+        last_sequence = prepare_last_sequence(feature_df, seq_length, features)
+        if last_sequence is None:
+            return None, "Failed to prepare sequence for forecasting"
+        
+        # Scale the last sequence
+        last_sequence_scaled = scaler.transform(last_sequence)
+        
+        # Generate forecast
+        forecast_df = generate_future_forecast(model, last_sequence_scaled, steps, scaler, freq, df)
+        if len(forecast_df) == 0:
+            return None, "Failed to generate forecast"
+        
+        # Plot the forecast
+        title = f"{freq} Frequency - Forecast"
+        image_path = plot_forecast(resampled_df, forecast_df, title)
+        
+        return forecast_df, image_path
+    except Exception as e:
+        print(f"Error in make_new_forecast: {e}")
+        return None, str(e)
+
+def plot_decomposition(resampled_df, freq_name, img_dir='static/img'):
+    """Generate time series decomposition plots"""
+    try:
+        # Check if we have enough data for decomposition
+        min_periods = {'Weekly': 52, 'Monthly': 12, 'Quarterly': 4}
+        required_periods = min_periods.get(freq_name, 12)
+        
+        if len(resampled_df) < required_periods:
+            # Create placeholder plots with "Insufficient Data" message
+            for plot_type in ['Trend', 'Seasonal', 'Residual']:
+                plt.figure(figsize=(12, 4))
+                plt.text(0.5, 0.5, f'Insufficient Data for {freq_name} {plot_type}\nNeed at least {required_periods} periods',
+                        horizontalalignment='center',
+                        verticalalignment='center',
+                        transform=plt.gca().transAxes,
+                        fontsize=14)
+                plt.gca().set_axis_off()
+                plt.tight_layout()
+                
+                filepath = os.path.join(img_dir, f'{freq_name}_Frequency_-_{plot_type}.png')
+                plt.savefig(filepath)
+                plt.close()
+            return True
+            
+        # If we have enough data, perform decomposition
+        decomposition = seasonal_decompose(resampled_df['Sales'], 
+                                        period=52 if freq_name == 'Weekly' else 12 if freq_name == 'Monthly' else 4,
+                                        extrapolate_trend='freq')
+        
+        # Plot Trend
+        plt.figure(figsize=(12, 4))
+        plt.plot(decomposition.trend, color='blue')
+        plt.title(f'{freq_name} Trend')
+        plt.xlabel('Date')
+        plt.ylabel('Trend')
+        plt.grid(True)
+        plt.gcf().autofmt_xdate()
+        plt.tight_layout()
+        trend_path = os.path.join(img_dir, f'{freq_name}_Frequency_-_Trend.png')
+        plt.savefig(trend_path)
+        plt.close()
+        
+        # Plot Seasonal
+        plt.figure(figsize=(12, 4))
+        plt.plot(decomposition.seasonal, color='blue')
+        plt.title(f'{freq_name} Seasonal Pattern')
+        plt.xlabel('Date')
+        plt.ylabel('Seasonal')
+        plt.grid(True)
+        plt.gcf().autofmt_xdate()
+        plt.tight_layout()
+        seasonal_path = os.path.join(img_dir, f'{freq_name}_Frequency_-_Seasonal.png')
+        plt.savefig(seasonal_path)
+        plt.close()
+        
+        # Plot Residual
+        plt.figure(figsize=(12, 4))
+        plt.scatter(resampled_df.index, decomposition.resid, color='blue', alpha=0.5, s=20)
+        plt.axhline(y=0, color='r', linestyle='--', alpha=0.3)
+        plt.title(f'{freq_name} Residual')
+        plt.xlabel('Date')
+        plt.ylabel('Residual')
+        plt.grid(True)
+        plt.gcf().autofmt_xdate()
+        plt.tight_layout()
+        residual_path = os.path.join(img_dir, f'{freq_name}_Frequency_-_Residual.png')
+        plt.savefig(residual_path)
+        plt.close()
+        
+        return True
+    except Exception as e:
+        print(f"Error generating decomposition plots: {e}")
+        return False
+
+def create_insufficient_data_plot(freq_name, plot_type, img_dir='static/img'):
+    """Create a placeholder plot for insufficient data cases"""
+    plt.figure(figsize=(12, 6))
+    plt.text(0.5, 0.5, f'Insufficient Data for {freq_name} {plot_type}\nPlease add more historical data',
+            horizontalalignment='center',
+            verticalalignment='center',
+            transform=plt.gca().transAxes,
+            fontsize=14)
+    plt.gca().set_axis_off()
+    plt.tight_layout()
+    
+    filepath = os.path.join(img_dir, f'{freq_name}_Frequency_-_{plot_type}.png')
+    plt.savefig(filepath)
+    plt.close()
+    return filepath
+
+def generate_initial_images():
+    """Generate initial images for historical data and model performance"""
+    try:
+        # Create static/img directory if it doesn't exist
+        os.makedirs(os.path.join('static', 'img'), exist_ok=True)
+        
+        # Get recent completed loans data
+        df = get_recent_completed_loans()
+        if len(df) == 0:
+            print("No completed loans data available")
+            # Create placeholder images for all frequencies
+            for freq in ['Weekly', 'Monthly', 'Quarterly']:
+                create_insufficient_data_plot(freq, 'Historical_Data')
+                create_insufficient_data_plot(freq, 'Model_Performance')
+                create_insufficient_data_plot(freq, 'Forecast')
+                # Create decomposition placeholders
+                for plot_type in ['Trend', 'Seasonal', 'Residual']:
+                    create_insufficient_data_plot(freq, plot_type)
+            return True
+        
+        print(f"Found {len(df)} completed loans")
+        
+        # Generate images for each frequency
+        for freq in ['W', 'M', 'Q']:
+            try:
+                # Get frequency name
+                freq_name = {'W': 'Weekly', 'M': 'Monthly', 'Q': 'Quarterly'}[freq]
+                print(f"Processing {freq_name} frequency...")
+                
+                # Resample data to this frequency
+                resampled_df = resample_data(df, freq)
+                if len(resampled_df) == 0:
+                    print(f"No data after resampling to {freq_name} frequency")
+                    create_insufficient_data_plot(freq_name, 'Historical_Data')
+                    create_insufficient_data_plot(freq_name, 'Model_Performance')
+                    create_insufficient_data_plot(freq_name, 'Forecast')
+                    for plot_type in ['Trend', 'Seasonal', 'Residual']:
+                        create_insufficient_data_plot(freq_name, plot_type)
+                    continue
+                
+                print(f"Resampled to {len(resampled_df)} {freq_name.lower()} periods")
+                    
+                # Check minimum required periods for each visualization
+                min_periods = {'W': 52, 'M': 12, 'Q': 4}
+                required_periods = min_periods.get(freq, 12)
+                
+                # Generate historical data image if we have any data
+                plt.figure(figsize=(12, 6))
+                plt.plot(resampled_df.index, resampled_df['Sales'], marker='o', label='Historical Data')
+                plt.title(f'{freq_name} Frequency - Historical Data')
+                plt.xlabel('Date')
+                plt.ylabel('Loan Amount')
+                plt.legend()
+                plt.grid(True)
+                plt.gcf().autofmt_xdate()
+                plt.tight_layout()
+                
+                hist_filepath = os.path.join('static', 'img', f'{freq_name}_Frequency_-_Historical_Data.png')
+                plt.savefig(hist_filepath)
+                plt.close()
+                
+                # Generate decomposition plots if we have enough data
+                decomp_success = plot_decomposition(resampled_df, freq_name)
+                if not decomp_success:
+                    for plot_type in ['Trend', 'Seasonal', 'Residual']:
+                        create_insufficient_data_plot(freq_name, plot_type)
+                
+                # Try to generate model performance and forecast
+                if len(resampled_df) >= required_periods:
+                        # Try to load model for this frequency
+                        model, scaler, seq_length, features = load_saved_model(freq)
+                        if model is not None:
+                            # Create features
+                            feature_df = create_features(resampled_df)
+                            if len(feature_df) >= seq_length and all(f in feature_df.columns for f in features):
+                                # Select features used by model
+                                feature_df = feature_df[features]
+                                
+                                # Generate model performance visualization
+                                split_idx = int(len(feature_df) * 0.8)
+                                train_df = feature_df.iloc[:split_idx]
+                                test_df = feature_df.iloc[split_idx:]
+                                
+                                if len(test_df) >= seq_length:
+                                # Generate predictions for model performance
+                                    predictions = []
+                                    actual_values = test_df['Sales'].values
+                                    
+                                    for i in range(len(test_df) - seq_length):
+                                        sequence = test_df.iloc[i:i+seq_length].values
+                                        sequence_scaled = scaler.transform(sequence)
+                                        sequence_scaled = sequence_scaled.reshape(1, seq_length, len(features))
+                                        pred = model.predict(sequence_scaled, verbose=0)
+                                        pred_scaled = np.zeros((1, scaler.scale_.shape[0]))
+                                        pred_scaled[0, 0] = pred[0, 0]
+                                        prediction = scaler.inverse_transform(pred_scaled)[0, 0]
+                                        predictions.append(prediction)
+                                    
+                                    if len(predictions) > 0:
+                                        # Plot model performance
+                                        plt.figure(figsize=(12, 6))
+                                        actual_dates = test_df.index[seq_length:]
+                                        plt.plot(actual_dates, actual_values[seq_length:], label='Actual', marker='o')
+                                        pred_dates = test_df.index[seq_length:len(actual_dates)]
+                                        plt.plot(pred_dates, predictions[:len(pred_dates)], label='Predicted', marker='x')
+                                        plt.title(f'{freq_name} Frequency - Model Performance')
+                                    plt.xlabel('Date')
+                                        plt.ylabel('Loan Amount')
+                                        plt.legend()
+                                        plt.grid(True)
+                                    plt.tight_layout()
+                                        
+                                    # Save model performance image
+                                        perf_filepath = os.path.join('static', 'img', f'{freq_name}_Frequency_-_Model_Performance.png')
+                                        plt.savefig(perf_filepath)
+                                        plt.close()
+                                        print(f"Generated model performance image: {perf_filepath}")
+                                    
+                                    # Generate future forecast
+                                    last_sequence = test_df.iloc[-seq_length:].values
+                                    last_sequence_scaled = scaler.transform(last_sequence)
+                                    
+                                    # Get default steps for each frequency
+                                    default_steps = {'W': 12, 'M': 6, 'Q': 4}[freq]
+                                    
+                                    # Generate future forecast
+                                    forecast_df = generate_future_forecast(model, last_sequence_scaled, default_steps, scaler, freq, resampled_df)
+                                    
+                                    # Plot future forecast
+                                    plt.figure(figsize=(12, 6))
+                                    plt.plot(resampled_df.index, resampled_df['Sales'], label='Historical', alpha=0.7)
+                                    plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linewidth=2)
+                                    plt.title(f'{freq_name} Frequency - Forecast')
+                                    plt.xlabel('Date')
+                    plt.ylabel('Loan Amount')
+                    plt.legend()
+                    plt.grid(True)
+                                    plt.tight_layout()
+                    
+                                    # Save forecast image
+                                    forecast_filepath = os.path.join('static', 'img', f'{freq_name}_Frequency_-_Forecast.png')
+                                    plt.savefig(forecast_filepath)
+                    plt.close()
+                                    print(f"Generated future forecast image: {forecast_filepath}")
+                                    
+                                    # Create decomposition plots
+                                    decomp_success = plot_decomposition(resampled_df, freq_name)
+                                    if decomp_success:
+                                        print(f"Generated decomposition plots for {freq_name} frequency")
+                                    else:
+                                        print(f"Failed to generate decomposition plots for {freq_name} frequency")
+                else:
+                    create_insufficient_data_plot(freq_name, 'Model_Performance')
+                    create_insufficient_data_plot(freq_name, 'Forecast')
+                
+            except Exception as freq_error:
+                print(f"Error processing {freq} frequency: {freq_error}")
+                import traceback
+                traceback.print_exc()
+                
+                # Create placeholder images for all plots in case of error
+                create_insufficient_data_plot(freq_name, 'Historical_Data')
+                create_insufficient_data_plot(freq_name, 'Model_Performance')
+                create_insufficient_data_plot(freq_name, 'Forecast')
+                for plot_type in ['Trend', 'Seasonal', 'Residual']:
+                    create_insufficient_data_plot(freq_name, plot_type)
+            
+        return True
+    except Exception as e:
+        print(f"Error generating initial images: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 if __name__ == "__main__":
     try:
+        # Generate initial images for the templates
+        generate_initial_images()
+        
+        # Train models if needed
         results = train_and_save_models()
         print("All models trained and saved successfully!")
     except Exception as e:

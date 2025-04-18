@@ -120,6 +120,98 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Loan Amortization Table -->
+                    {% if loan.loan_details %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Loan Amortization Schedule</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Loan Schedule Summary -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <th width="40%">Loan Amount:</th>
+                                                <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Loan Term:</th>
+                                                <td>{{ loan.loan_details.loan_amount_term }} months</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Monthly Interest:</th>
+                                                <td>{{ current_interest_rate|floatformat:2 }}% per annum</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <th width="40%">Monthly Payment:</th>
+                                                <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Start Date:</th>
+                                                <td>{% if loan.loan_disbursement_officer_remarks %}
+                                                    {{ loan.loan_disbursement_officer_remarks.disbursement_date|date:"M d, Y" }}
+                                                    {% else %}Pending Disbursement{% endif %}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Maturity Date:</th>
+                                                <td>{% if loan.loan_disbursement_officer_remarks %}
+                                                    {{ loan.loan_disbursement_officer_remarks.maturity_date|date:"M d, Y" }}
+                                                    {% else %}Pending Disbursement{% endif %}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped" id="loanAmortizationTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Period</th>
+                                            <th>Principal</th>
+                                            <th>Interest</th>
+                                            <th>Monthly Payment</th>
+                                            <th>Due Date</th>
+                                            <th>Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% load custom_filters %}
+                                        {% with loan_amount=loan.loan_details.loan_amount_applied interest_rate=current_interest_rate term=loan.loan_details.loan_amount_term payment=loan.loan_details.monthly_amortization %}
+                                            {% for i in term|make_range %}
+                                                {% with period=forloop.counter %}
+                                                    <tr>
+                                                        <td>{{ period }}</td>
+                                                        {% with interest=loan_amount|mul:interest_rate|div:1200 %}
+                                                            {% with principal=payment|sub:interest %}
+                                                                <td>₱{{ principal|floatformat:2|intcomma }}</td>
+                                                                <td>₱{{ interest|floatformat:2|intcomma }}</td>
+                                                                <td>₱{{ payment|floatformat:2|intcomma }}</td>
+                                                                <td>{% if loan.loan_disbursement_officer_remarks %}{{ loan.loan_disbursement_officer_remarks.disbursement_date|add_months:period }}{% else %}Pending Disbursement{% endif %}</td>
+                                                                {% with remaining_balance=loan_amount|sub:principal|mul:period %}
+                                                                    <td>₱{{ remaining_balance|floatformat:2|intcomma }}</td>
+                                                                {% endwith %}
+                                                            {% endwith %}
+                                                        {% endwith %}
+                                                    </tr>
+                                                {% endwith %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                     
                     {% if loan.status.remarks %}
                         <div class="mb-4">
@@ -171,24 +263,109 @@
                                 </div>
                                 </div>
                                 
-                                {% if loan.status %}
+                                {% if loan.marketing_officer_remarks %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker {% if loan.status.status == 'PENDING' %}bg-warning{% else %}bg-success{% endif %}"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">Application Processing</h6>
+                                        <p class="mb-1">{{ loan.marketing_officer_remarks.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            Processed by {{ loan.marketing_officer_remarks.marketing_officer_name }} | {% if loan.marketing_officer_remarks.remarks %}{{ loan.marketing_officer_remarks.remarks }}{% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.credit_investigator_remarks %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker {% if loan.status.status == 'PROCEED_CI' %}bg-info{% else %}bg-success{% endif %}"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">Credit Investigation</h6>
+                                        <p class="mb-1">{{ loan.credit_investigator_remarks.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            Verified by {{ loan.credit_investigator_remarks.credit_investigator_name }} | {{ loan.credit_investigator_remarks.remarks }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.loan_approval_officer_remarks %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker {% if loan.status.status == 'PROCEED_LAO' %}bg-primary{% else %}bg-success{% endif %}"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">Loan Approval</h6>
+                                        <p class="mb-1">{{ loan.loan_approval_officer_remarks.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            Approved by {{ loan.loan_approval_officer_remarks.loan_approval_officer_name }} | {{ loan.loan_approval_officer_remarks.remarks }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.loan_disbursement_officer_remarks %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker {% if loan.status.status == 'PROCEED_LDO' %}bg-primary{% else %}bg-success{% endif %}"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">Loan Disbursement</h6>
+                                        <p class="mb-1">{{ loan.loan_disbursement_officer_remarks.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            Processed by {{ loan.loan_disbursement_officer_remarks.loan_disbursement_officer_name }} | {{ loan.loan_disbursement_officer_remarks.remarks }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.status.status == 'COMPLETED' %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">Completed</h6>
+                                        <p class="mb-1">{{ loan.status.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            Loan has been successfully processed and funds have been disbursed.
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.status.status == 'HOLD' %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-secondary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">On Hold</h6>
+                                        <p class="mb-1">{{ loan.status.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            {% if loan.status.remarks %}{{ loan.status.remarks }}{% else %}Application is on hold pending additional information.{% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.status.status == 'CANCELLED' or loan.status.status == 'DECLINED' %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-danger"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">{{ loan.status.get_status_display }}</h6>
+                                        <p class="mb-1">{{ loan.status.updated_at|date:"F d, Y - h:i A" }}</p>
+                                        <small class="text-muted">
+                                            {% if loan.status.remarks %}{{ loan.status.remarks }}{% else %}{% if loan.status.status == 'CANCELLED' %}Application has been cancelled.{% else %}Loan application has been declined.{% endif %}{% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if loan.status.status != 'COMPLETED' and loan.status.status != 'HOLD' and loan.status.status != 'CANCELLED' and loan.status.status != 'DECLINED' %}
                                     <div class="timeline-item">
                                         <div class="timeline-marker 
                                             {% if loan.status.status == 'PENDING' %}bg-warning
                                             {% elif loan.status.status == 'PROCEED_CI' %}bg-info
                                             {% elif loan.status.status == 'PROCEED_LAO' %}bg-primary
                                             {% elif loan.status.status == 'PROCEED_LDO' %}bg-primary
-                                            {% elif loan.status.status == 'COMPLETED' %}bg-success
-                                            {% elif loan.status.status == 'HOLD' %}bg-secondary
-                                        {% elif loan.status.status == 'CANCELLED' or loan.status.status == 'DECLINED' %}bg-danger
                                             {% endif %}"></div>
                                         <div class="timeline-content">
-                                        <h6 class="timeline-title">{{ loan.status.get_status_display }}</h6>
+                                        <h6 class="timeline-title">Current Status: {{ loan.status.get_status_display }}</h6>
                                         <p class="mb-1">{{ loan.status.updated_at|date:"F d, Y - h:i A" }}</p>
                                         <small class="text-muted">
-                                            {% if loan.status.remarks %}
-                                                {{ loan.status.remarks }}
-                                            {% else %}
                                                 {% with status=loan.status.status %}
                                                     {% if status == 'PENDING' %}
                                                         Your application is being reviewed by our Marketing Officer.
@@ -198,17 +375,8 @@
                                                         Your application is now with our Loan Approval Officer.
                                                     {% elif status == 'PROCEED_LDO' %}
                                                         Your application has been approved and is now being processed for disbursement.
-                                                    {% elif status == 'COMPLETED' %}
-                                                        Your loan has been successfully disbursed.
-                                                    {% elif status == 'HOLD' %}
-                                                        Your application is on hold pending additional information.
-                                                    {% elif status == 'CANCELLED' %}
-                                                        Your application has been cancelled.
-                                                    {% elif status == 'DECLINED' %}
-                                                        Your loan application has been declined.
                                                     {% endif %}
                                                 {% endwith %}
-                                            {% endif %}
                                         </small>
                                     </div>
                                     </div>
@@ -266,4 +434,31 @@
     }
 </style>
 {% endif %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#loanAmortizationTable').DataTable({
+            "pageLength": 5,
+            "searching": false,
+            "ordering": false,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "dom": '<"row"<"col-sm-6"l><"col-sm-6">>rt<"row"<"col-sm-6"i><"col-sm-6"p>>',
+            "language": {
+                "lengthMenu": "",
+                "info": "Showing _START_ to _END_ of _TOTAL_ periods",
+                "infoEmpty": "No periods available",
+                "paginate": {
+                    "first": "<i class='fas fa-angle-double-left'></i>",
+                    "last": "<i class='fas fa-angle-double-right'></i>",
+                    "next": "<i class='fas fa-angle-right'></i>",
+                    "previous": "<i class='fas fa-angle-left'></i>"
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %} 

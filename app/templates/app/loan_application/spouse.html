@@ -142,5 +142,48 @@
             }
         });
     });
+    
+    // Simple comma formatting for income fields
+    function formatWithCommas(input) {
+        if (!input) return;
+        
+        // Convert to text type for comma formatting
+        input.setAttribute('type', 'text');
+        
+        input.addEventListener('input', function() {
+            // Get cursor position and clean input value
+            const pos = this.selectionStart;
+            const rawValue = this.value.replace(/,/g, '').replace(/[^\d]/g, '');
+            
+            // Add commas using regex
+            if (rawValue) {
+                const formatted = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                
+                if (this.value !== formatted) {
+                    const diff = formatted.length - this.value.length;
+                    this.value = formatted;
+                    this.setSelectionRange(pos + diff, pos + diff);
+                }
+            }
+            
+            // Create hidden input with numeric value
+            const name = this.name;
+            if (!this.dataset.hasHidden) {
+                this.name = name + '_display';
+                this.dataset.hasHidden = 'true';
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = name;
+                hidden.value = rawValue;
+                this.after(hidden);
+            } else {
+                this.nextElementSibling.value = rawValue;
+            }
+        });
+    }
+    
+    // Apply to income fields
+    formatWithCommas(document.getElementById('{{ form.net_income.id_for_label }}'));
+    formatWithCommas(document.getElementById('{{ form.other_monthly_income.id_for_label }}'));
 </script>
 {% endblock %} 

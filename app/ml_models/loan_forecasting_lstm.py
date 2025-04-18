@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend to avoid Tkinter issues
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
@@ -209,7 +211,7 @@ def evaluate_model(model, X_test, y_test, y_scaler):
     
     return y_pred, y_actual, rmse, mae, mape
 
-def plot_results(y_actual, y_pred, title):
+def plot_results(y_actual, y_pred, title='Actual vs Predicted Values'):
     """
     Plot actual vs predicted values
     """
@@ -217,32 +219,76 @@ def plot_results(y_actual, y_pred, title):
     plt.plot(y_actual, label='Actual')
     plt.plot(y_pred, label='Predicted')
     plt.title(title)
-    plt.xlabel('Time')
-    plt.ylabel('Sales')
+    
+    # Set appropriate x-axis label based on title
+    if 'Weekly' in title:
+        x_label = 'Week'
+    elif 'Monthly' in title:
+        x_label = 'Month'
+    elif 'Quarterly' in title:
+        x_label = 'Quarter'
+    else:
+        x_label = 'Data Point'
+        
+    plt.xlabel(x_label)
+    plt.ylabel('Loan Amount')
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"{title.replace(' ', '_').lower()}.png")
     plt.show()
 
-def plot_forecast(historical_data, forecast_data, title):
-    """
-    Plot historical data and forecasts
-    """
+def plot_forecast(history_data, forecast_data, title='Forecast'):
     plt.figure(figsize=(12, 6))
     
     # Plot historical data
-    plt.plot(historical_data.index, historical_data['Sales'], label='Historical')
+    history_len = len(history_data)
+    forecast_len = len(forecast_data)
+    total_len = history_len + forecast_len
     
-    # Plot forecast
-    plt.plot(forecast_data.index, forecast_data['Forecast'], label='Forecast')
+    x_history = np.arange(history_len)
+    x_forecast = np.arange(history_len, total_len)
     
+    # Determine the appropriate x-axis label based on title
+    x_label = 'Date'
+    if 'Weekly' in title:
+        x_label = 'Week'
+        # Create week labels
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [f"Week {i+1}" for i in range(total_len)]
+    elif 'Monthly' in title:
+        x_label = 'Month'
+        # Create month labels
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [months[i % 12] for i in range(total_len)]
+    elif 'Quarterly' in title:
+        x_label = 'Quarter'
+        # Create quarter labels
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [f"Q{(i%4)+1}" for i in range(total_len)]
+    else:
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [f"Point {i+1}" for i in range(total_len)]
+    
+    plt.plot(x_history, history_data, 'b-', label='Historical Data')
+    plt.plot(x_forecast, forecast_data, 'r--', label='Forecast')
     plt.title(title)
-    plt.xlabel('Date')
-    plt.ylabel('Sales')
+    
+    # Set the custom tick positions and labels
+    plt.xticks(x_ticks, x_tick_labels)
+    
+    plt.xlabel(x_label)
+    plt.ylabel('Loan Amount')
     plt.legend()
-    plt.tight_layout()
-    plt.savefig(f"{title.replace(' ', '_').lower()}.png")
-    plt.show()
+    plt.grid(True)
+    
+    # Save the plot to a file
+    filename = f"{title.replace(' ', '_').lower()}_forecast.png"
+    plt.savefig(filename)
+    plt.close()
+    
+    return filename
 
 def make_future_forecast(model, last_sequence, n_periods, y_scaler, freq):
     """
@@ -364,7 +410,7 @@ def forecast_timeseries(file_path, frequency, sequence_length, forecast_periods,
     }, index=future_dates)
     
     # Plot historical data with forecast
-    plot_forecast(resampled_df, forecast_df, f"{freq_label[frequency]} Sales Forecast")
+    plot_forecast(resampled_df['Sales'], forecast_df['Forecast'], f"{freq_label[frequency]} Sales Forecast")
     
     # Save model
     model_dir = "models"

@@ -61,8 +61,8 @@
                         </div>
                         
                         <div class="col-md-6">
+                            <h4>Personal Information</h4>
                             {% if loan.personal_info %}
-                                <h4>Personal Information</h4>
                                 <table class="table">
                                     <tr>
                                         <th>Name:</th>
@@ -93,8 +93,8 @@
                     
                     <div class="row mt-4">
                         <div class="col-md-6">
+                            <h4>Contact Information</h4>
                             {% if loan.contact_info %}
-                                <h4>Contact Information</h4>
                                 <table class="table">
                                     <tr>
                                         <th>Contact Number:</th>
@@ -115,16 +115,24 @@
                         </div>
                         
                         <div class="col-md-6">
+                            <h4>Source of Income</h4>
                             {% if loan.employment %}
-                                <h4>Employment Information</h4>
                                 <table class="table">
                                     <tr>
                                         <th>Employment Status:</th>
                                         <td>{{ loan.employment.get_employment_status_display }}</td>
                                     </tr>
                                     <tr>
+                                        <th>Source of Funds:</th>
+                                        <td>{{ loan.employment.get_source_of_funds_display }}</td>
+                                    </tr>
+                                    <tr>
                                         <th>Employer/Business:</th>
                                         <td>{{ loan.employment.employer_business_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact Number:</th>
+                                        <td>{{ loan.employment.employer_contact_number }}</td>
                                     </tr>
                                     <tr>
                                         <th>Position:</th>
@@ -143,8 +151,148 @@
                     
                     <div class="row mt-4">
                         <div class="col-md-6">
+                            <h4>Educational Background</h4>
+                            {% if loan.education %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Education Level:</th>
+                                        <td>{{ loan.education.get_education_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Course:</th>
+                                        <td>{{ loan.education.course }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>School Last Attended:</th>
+                                        <td>{{ loan.education.school_last_attended }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Year Graduated:</th>
+                                        <td>{{ loan.education.year_graduated }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No educational information available.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h4>Spouse/Co-Borrower Information</h4>
+                            {% if loan.spouse %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>{{ loan.spouse.last_name }}, {{ loan.spouse.first_name }} {{ loan.spouse.middle_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Relation:</th>
+                                        <td>{{ loan.spouse.relation_to_borrower }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Birth:</th>
+                                        <td>{{ loan.spouse.date_of_birth|date:"F d, Y" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Education:</th>
+                                        <td>{{ loan.spouse.get_education_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Employer/Business:</th>
+                                        <td>{{ loan.spouse.employer_business_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact Number:</th>
+                                        <td>{{ loan.spouse.employer_contact_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Monthly Income:</th>
+                                        <td>₱{{ loan.spouse.net_income|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No spouse/co-borrower information available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>Vehicle Information</h4>
+                            {% if loan.vehicle %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Make/Brand:</th>
+                                        <td>{{ loan.vehicle.make_brand }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Model/Series:</th>
+                                        <td>{{ loan.vehicle.series }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Year Model:</th>
+                                        <td>{{ loan.vehicle.year_model }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Variant:</th>
+                                        <td>{{ loan.vehicle.variant }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Color:</th>
+                                        <td>{{ loan.vehicle.color }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Transmission:</th>
+                                        <td>{{ loan.vehicle.get_transmission_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Fuel Type:</th>
+                                        <td>{{ loan.vehicle.get_fuel_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Plate Number:</th>
+                                        <td>{{ loan.vehicle.plate_no|default:"Not Available" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Engine Number:</th>
+                                        <td>{{ loan.vehicle.engine_no }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Chassis Number:</th>
+                                        <td>{{ loan.vehicle.chassis_no }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No vehicle information available.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h4>Dealer Information</h4>
+                            {% if loan.vehicle %}
+                                <table class="table">
+                                    <tr>
+                                        <th>Dealer Name:</th>
+                                        <td>{{ loan.vehicle.dealer_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Dealer Address:</th>
+                                        <td>{{ loan.vehicle.dealer_address }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact Number:</th>
+                                        <td>{{ loan.vehicle.dealer_contact_number }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <div class="alert alert-warning">No dealer information available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>Loan Details</h4>
                             {% if loan.loan_details %}
-                                <h4>Loan Details</h4>
                                 <table class="table">
                                     <tr>
                                         <th>Loan Type:</th>
@@ -177,8 +325,8 @@
                         </div>
                         
                         <div class="col-md-6">
+                            <h4>Documents</h4>
                             {% if loan.documents %}
-                                <h4>Documents</h4>
                                 <table class="table">
                                     <tr>
                                         <th>Valid ID:</th>
@@ -223,10 +371,10 @@
                         </div>
                     </div>
                     
-                    {% if loan.cash_flow %}
                     <div class="row mt-4">
                         <div class="col-md-12">
                             <h4>Monthly Cash Flow</h4>
+                            {% if loan.cash_flow %}
                             <div class="row">
                                 <div class="col-md-6">
                                     <h5>Income</h5>
@@ -265,55 +413,148 @@
                                     </table>
                                 </div>
                             </div>
+                            {% else %}
+                                <div class="alert alert-warning">No cash flow information available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if loan_amortization %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h4>Loan Amortization</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table">
+                                        <tr>
+                                            <th>Loan Amount:</th>
+                                            <td>₱{{ loan_amortization.loan_amount|floatformat:2|intcomma }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Interest Rate:</th>
+                                            <td>{{ loan_amortization.interest_rate|floatformat:2 }}%</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Term:</th>
+                                            <td>{{ loan_amortization.term_months }} months</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table">
+                                        <tr>
+                                            <th>Monthly Payment:</th>
+                                            <td>₱{{ loan_amortization.monthly_payment|floatformat:2|intcomma }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Payment:</th>
+                                            <td>₱{{ loan_amortization.total_payment|floatformat:2|intcomma }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total Interest:</th>
+                                            <td>₱{{ loan_amortization.total_interest|floatformat:2|intcomma }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     {% endif %}
                 </div>
             </div>
             
-            {% if loan_amortization %}
-                <div class="card mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="card-title mb-0">Loan Amortization</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <table class="table">
-                                    <tr>
-                                        <th>Loan Amount:</th>
-                                        <td>₱{{ loan_amortization.loan_amount|floatformat:2|intcomma }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Interest Rate:</th>
-                                        <td>{{ loan_amortization.interest_rate|floatformat:2 }}%</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Term:</th>
-                                        <td>{{ loan_amortization.term_months }} months</td>
-                                    </tr>
-                                </table>
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white d-flex align-items-center">
+                    <i class="fas fa-history me-2"></i>
+                    <h3 class="card-title mb-0">Status History</h3>
+                </div>
+                <div class="card-body p-3">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-badge bg-primary">
+                                <i class="fas fa-file-alt"></i>
                             </div>
-                            <div class="col-md-6">
-                                <table class="table">
-                                    <tr>
-                                        <th>Monthly Payment:</th>
-                                        <td>₱{{ loan_amortization.monthly_payment|floatformat:2|intcomma }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Total Payment:</th>
-                                        <td>₱{{ loan_amortization.total_payment|floatformat:2|intcomma }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Total Interest:</th>
-                                        <td>₱{{ loan_amortization.total_interest|floatformat:2|intcomma }}</td>
-                                    </tr>
-                                </table>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Application Created</h6>
+                                    <small class="text-muted">{{ loan.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="text-muted small mb-0">Application submitted for review</p>
                             </div>
                         </div>
+                        
+                        {% if loan.marketing_officer_remarks %}
+                        <div class="timeline-item">
+                            <div class="timeline-badge {% if loan.marketing_officer_remarks.complete_documents == 'YES' %}bg-success{% else %}bg-warning{% endif %}">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Marketing Officer Review</h6>
+                                    <small class="text-muted">{{ loan.status.updated_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="text-muted small mb-0">
+                                    Documents: 
+                                    <span class="badge {% if loan.marketing_officer_remarks.complete_documents == 'YES' %}bg-success{% else %}bg-warning{% endif %}">
+                                        {{ loan.marketing_officer_remarks.get_complete_documents_display }}
+                                    </span>
+                                </p>
+                                {% if loan.marketing_officer_remarks.remarks %}
+                                <div class="timeline-note mt-2">
+                                    {{ loan.marketing_officer_remarks.remarks }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if loan.status.status != 'PENDING' %}
+                        <div class="timeline-item">
+                            <div class="timeline-badge 
+                                {% if loan.status.status == 'PROCEED_CI' %}bg-info
+                                {% elif loan.status.status == 'PROCEED_LAO' %}bg-primary
+                                {% elif loan.status.status == 'PROCEED_LDO' %}bg-primary
+                                {% elif loan.status.status == 'COMPLETED' %}bg-success
+                                {% elif loan.status.status == 'HOLD' %}bg-warning
+                                {% elif loan.status.status == 'CANCELLED' %}bg-danger
+                                {% endif %}">
+                                <i class="fas {% if loan.status.status == 'COMPLETED' %}fa-check
+                                    {% elif loan.status.status == 'CANCELLED' %}fa-times
+                                    {% elif loan.status.status == 'HOLD' %}fa-pause
+                                    {% else %}fa-arrow-right{% endif %}">
+                                </i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">{{ loan.status.get_status_display }}</h6>
+                                    <small class="text-muted">{{ loan.status.updated_at|date:"M d, Y" }}</small>
+                                </div>
+                                {% if loan.status.remarks %}
+                                <div class="timeline-note mt-2">
+                                    {{ loan.status.remarks }}
+                                </div>
+                                {% endif %}
+                                <p class="text-muted small mb-0">
+                                    {% if loan.status.status == 'PROCEED_CI' %}
+                                        Forwarded to Credit Investigation
+                                    {% elif loan.status.status == 'PROCEED_LAO' %}
+                                        Under Loan Approval Review
+                                    {% elif loan.status.status == 'PROCEED_LDO' %}
+                                        Pending Disbursement
+                                    {% elif loan.status.status == 'COMPLETED' %}
+                                        Loan Successfully Disbursed
+                                    {% elif loan.status.status == 'HOLD' %}
+                                        Application Currently On Hold
+                                    {% elif loan.status.status == 'CANCELLED' %}
+                                        Application Cancelled
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-            {% endif %}
+            </div>
         </div>
         
         <!-- Right Column: Marketing Officer Remarks -->
@@ -343,7 +584,7 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Save Remarks</button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Save Remarks</button>
                         </div>
                     </form>
                 </div>
@@ -440,6 +681,25 @@
                         {% endif %}
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to save and proceed to the next step of this application?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSave">Yes, Proceed</button>
             </div>
         </div>
     </div>
@@ -577,6 +837,21 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the form element
+        const form = document.querySelector('form');
+        
+        // Add event listener to the confirm button
+        document.getElementById('confirmSave').addEventListener('click', function() {
+            // Submit the form when the confirm button is clicked
+            form.submit();
+        });
+    });
+</script>
 {% endblock %}
 
 {% endblock %} 

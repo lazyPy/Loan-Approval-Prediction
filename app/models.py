@@ -387,6 +387,8 @@ class MarketingOfficerRemarks(models.Model):
     marketing_officer_name = models.CharField(max_length=100)
     complete_documents = models.CharField(max_length=3, choices=DOCUMENT_COMPLETE_CHOICES, default='NO')
     remarks = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"Marketing Officer Remarks for Loan {self.loan.loan_id}"
@@ -595,7 +597,7 @@ class LoanDisbursementOfficerRemarks(models.Model):
     loan = models.OneToOneField(Borrower, on_delete=models.CASCADE, related_name='loan_disbursement_officer_remarks')
     loan_disbursement_officer_name = models.CharField(max_length=100)
     disbursement_date = models.DateField()
-    loan_due_date = models.DateField()
+    maturity_date = models.DateField()
     remarks = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='HOLD')
     created_at = models.DateTimeField(auto_now_add=True)

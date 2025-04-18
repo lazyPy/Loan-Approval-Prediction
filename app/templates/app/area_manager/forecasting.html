@@ -10,10 +10,34 @@
         <a href="{% url 'area_manager_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
 
+    <!-- Loading indicator for forecast regeneration -->
+    <div id="regenerate-loading" class="alert alert-info d-none">
+        <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span>Generating new forecasts based on the latest loan data. This may take a minute...</span>
+        </div>
+    </div>
+    
+    <!-- Success/error messages -->
+    <div id="regenerate-success" class="alert alert-success d-none">
+        Forecasts have been successfully updated with the latest loan data!
+    </div>
+    
+    <div id="regenerate-error" class="alert alert-danger d-none">
+        An error occurred while updating forecasts. Please try again later.
+    </div>
+
     <!-- Forecasting Tabs -->
     <div class="card">
         <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
             <h3 class="card-title mb-0">Forecast Analysis</h3>
+                <button type="button" id="regenerate-forecasts" class="btn btn-light" onclick="handleRegenerate()">
+                    <i class="fas fa-sync-alt me-1"></i> Update Forecasts
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <ul class="nav nav-tabs" id="forecastTabs" role="tablist">
@@ -32,14 +56,20 @@
                 <div class="tab-pane fade show active" id="weekly" role="tabpanel" aria-labelledby="weekly-tab">
                     <h4>Weekly Loan Disbursement Forecast</h4>
                     
-                    <div class="row">
+                    <div class="row" id="weekly-historical-data">
                         <div class="col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <h5 class="mb-0">Historical Data</h5>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img src="{% static 'img/Weekly_Frequency_-_Historical_Data.png' %}" class="img-fluid" alt="Weekly Historical Data" style="max-height: 400px;">
+                                    <img 
+                                        src="{% static 'img/Weekly_Frequency_-_Historical_Data.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Weekly Historical Data" 
+                                        style="max-height: 400px;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No historical data available';"
+                                    >
                                 </div>
                             </div>
                         </div>
@@ -49,66 +79,69 @@
                                     <h5 class="mb-0">Model Performance</h5>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img src="{% static 'img/Weekly_Frequency_-_Model_Performance.png' %}" class="img-fluid" alt="Weekly Model Performance" style="max-height: 400px;">
+                                    <img 
+                                        src="{% static 'img/Weekly_Frequency_-_Model_Performance.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Weekly Model Performance" 
+                                        style="max-height: 400px;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No model performance data available';"
+                                    >
                                 </div>
                             </div>
                         </div>
                     </div>
                     
+                    <!-- Time Series Decomposition -->
                     <div class="card mb-4">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0">Generate Weekly Forecasts</h5>
+                        <div class="card-header">
+                            <h5 class="mb-0">Time Series Decomposition</h5>
                         </div>
                         <div class="card-body">
-                            <form id="weekly-forecast-form">
-                                <div class="row align-items-end">
-                                    <div class="col-md-6">
-                                        <label for="weekly-steps" class="form-label">Forecast Weeks Ahead</label>
-                                        <select class="form-select" id="weekly-steps" name="steps">
-                                            <option value="4">4 Weeks (1 Month)</option>
-                                            <option value="8">8 Weeks (2 Months)</option>
-                                            <option selected value="12">12 Weeks (3 Months)</option>
-                                            <option value="16">16 Weeks (4 Months)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <button type="submit" class="btn btn-primary w-100">Generate Forecast</button>
-                                    </div>
+                            <div class="row">
+                                <div class="col-12 mb-4">
+                                    <img 
+                                        src="{% static 'img/Weekly_Frequency_-_Trend.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Weekly Trend" 
+                                        style="width: 100%;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No trend data available';"
+                                    >
                                 </div>
-                            </form>
-                            
-                            <div id="weekly-forecast-result" class="mt-4 d-none">
-                                <div class="text-center mb-3">
-                                    <img id="weekly-forecast-image" src="" class="img-fluid" alt="Weekly Forecast" style="max-height: 400px;">
+                                <div class="col-12 mb-4">
+                                    <img 
+                                        src="{% static 'img/Weekly_Frequency_-_Seasonal.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Weekly Seasonal Pattern" 
+                                        style="width: 100%;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No seasonal data available';"
+                                    >
                                 </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover" id="weekly-forecast-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Forecasted Amount (₱)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Forecast data will be inserted here -->
-                                        </tbody>
-                                    </table>
+                                <div class="col-12">
+                                    <img 
+                                        src="{% static 'img/Weekly_Frequency_-_Residual.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Weekly Residual" 
+                                        style="width: 100%;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No residual data available';"
+                                    >
                                 </div>
                             </div>
-                            
-                            <div id="weekly-forecast-loading" class="d-none">
-                                <div class="d-flex justify-content-center mt-4">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
                                     </div>
-                                </div>
-                                <p class="text-center mt-2">Generating forecast, please wait...</p>
                             </div>
                             
-                            <div id="weekly-forecast-error" class="alert alert-danger mt-4 d-none">
-                                An error occurred while generating the forecast. Please try again.
+                    <!-- Future Forecast -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Future Forecast</h5>
                             </div>
+                        <div class="card-body text-center">
+                            <img 
+                                src="{% static 'img/Weekly_Frequency_-_Forecast.png' %}" 
+                                class="img-fluid" 
+                                alt="Weekly Future Forecast" 
+                                style="max-height: 400px;"
+                                onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No forecast data available';"
+                            >
                         </div>
                     </div>
                 </div>
@@ -117,14 +150,20 @@
                 <div class="tab-pane fade" id="monthly" role="tabpanel" aria-labelledby="monthly-tab">
                     <h4>Monthly Loan Disbursement Forecast</h4>
                     
-                    <div class="row">
+                    <div class="row" id="monthly-historical-data">
                         <div class="col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <h5 class="mb-0">Historical Data</h5>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img src="{% static 'img/Monthly_Frequency_-_Historical_Data.png' %}" class="img-fluid" alt="Monthly Historical Data" style="max-height: 400px;">
+                                    <img 
+                                        src="{% static 'img/Monthly_Frequency_-_Historical_Data.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Monthly Historical Data" 
+                                        style="max-height: 400px;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No historical data available';"
+                                    >
                                 </div>
                             </div>
                         </div>
@@ -134,66 +173,31 @@
                                     <h5 class="mb-0">Model Performance</h5>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img src="{% static 'img/Monthly_Frequency_-_Model_Performance.png' %}" class="img-fluid" alt="Monthly Model Performance" style="max-height: 400px;">
+                                    <img 
+                                        src="{% static 'img/Monthly_Frequency_-_Model_Performance.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Monthly Model Performance" 
+                                        style="max-height: 400px;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No model performance data available';"
+                                    >
                                 </div>
                             </div>
                         </div>
                     </div>
                     
+                    <!-- Future Forecast -->
                     <div class="card mb-4">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0">Generate Monthly Forecasts</h5>
+                        <div class="card-header">
+                            <h5 class="mb-0">Future Forecast</h5>
                         </div>
-                        <div class="card-body">
-                            <form id="monthly-forecast-form">
-                                <div class="row align-items-end">
-                                    <div class="col-md-6">
-                                        <label for="monthly-steps" class="form-label">Forecast Months Ahead</label>
-                                        <select class="form-select" id="monthly-steps" name="steps">
-                                            <option value="3">3 Months (1 Quarter)</option>
-                                            <option selected value="6">6 Months (Half Year)</option>
-                                            <option value="9">9 Months (3 Quarters)</option>
-                                            <option value="12">12 Months (Full Year)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <button type="submit" class="btn btn-primary w-100">Generate Forecast</button>
-                                    </div>
-                                </div>
-                            </form>
-                            
-                            <div id="monthly-forecast-result" class="mt-4 d-none">
-                                <div class="text-center mb-3">
-                                    <img id="monthly-forecast-image" src="" class="img-fluid" alt="Monthly Forecast" style="max-height: 400px;">
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover" id="monthly-forecast-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Month</th>
-                                                <th>Forecasted Amount (₱)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Forecast data will be inserted here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div id="monthly-forecast-loading" class="d-none">
-                                <div class="d-flex justify-content-center mt-4">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                                <p class="text-center mt-2">Generating forecast, please wait...</p>
-                            </div>
-                            
-                            <div id="monthly-forecast-error" class="alert alert-danger mt-4 d-none">
-                                An error occurred while generating the forecast. Please try again.
-                            </div>
+                        <div class="card-body text-center">
+                            <img 
+                                src="{% static 'img/Monthly_Frequency_-_Forecast.png' %}" 
+                                class="img-fluid" 
+                                alt="Monthly Future Forecast" 
+                                style="max-height: 400px;"
+                                onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No forecast data available';"
+                            >
                         </div>
                     </div>
                 </div>
@@ -202,14 +206,20 @@
                 <div class="tab-pane fade" id="quarterly" role="tabpanel" aria-labelledby="quarterly-tab">
                     <h4>Quarterly Loan Disbursement Forecast</h4>
                     
-                    <div class="row">
+                    <div class="row" id="quarterly-historical-data">
                         <div class="col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <h5 class="mb-0">Historical Data</h5>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img src="{% static 'img/Quarterly_Frequency_-_Historical_Data.png' %}" class="img-fluid" alt="Quarterly Historical Data" style="max-height: 400px;">
+                                    <img 
+                                        src="{% static 'img/Quarterly_Frequency_-_Historical_Data.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Quarterly Historical Data" 
+                                        style="max-height: 400px;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No historical data available';"
+                                    >
                                 </div>
                             </div>
                         </div>
@@ -219,66 +229,31 @@
                                     <h5 class="mb-0">Model Performance</h5>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img src="{% static 'img/Quarterly_Frequency_-_Model_Performance.png' %}" class="img-fluid" alt="Quarterly Model Performance" style="max-height: 400px;">
+                                    <img 
+                                        src="{% static 'img/Quarterly_Frequency_-_Model_Performance.png' %}" 
+                                        class="img-fluid" 
+                                        alt="Quarterly Model Performance" 
+                                        style="max-height: 400px;"
+                                        onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No model performance data available';"
+                                    >
                                 </div>
                             </div>
                         </div>
                     </div>
                     
+                    <!-- Future Forecast -->
                     <div class="card mb-4">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0">Generate Quarterly Forecasts</h5>
+                        <div class="card-header">
+                            <h5 class="mb-0">Future Forecast</h5>
                         </div>
-                        <div class="card-body">
-                            <form id="quarterly-forecast-form">
-                                <div class="row align-items-end">
-                                    <div class="col-md-6">
-                                        <label for="quarterly-steps" class="form-label">Forecast Quarters Ahead</label>
-                                        <select class="form-select" id="quarterly-steps" name="steps">
-                                            <option value="2">2 Quarters (Half Year)</option>
-                                            <option selected value="4">4 Quarters (Full Year)</option>
-                                            <option value="8">8 Quarters (2 Years)</option>
-                                            <option value="12">12 Quarters (3 Years)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <button type="submit" class="btn btn-primary w-100">Generate Forecast</button>
-                                    </div>
-                                </div>
-                            </form>
-                            
-                            <div id="quarterly-forecast-result" class="mt-4 d-none">
-                                <div class="text-center mb-3">
-                                    <img id="quarterly-forecast-image" src="" class="img-fluid" alt="Quarterly Forecast" style="max-height: 400px;">
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover" id="quarterly-forecast-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Quarter</th>
-                                                <th>Forecasted Amount (₱)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Forecast data will be inserted here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div id="quarterly-forecast-loading" class="d-none">
-                                <div class="d-flex justify-content-center mt-4">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                                <p class="text-center mt-2">Generating forecast, please wait...</p>
-                            </div>
-                            
-                            <div id="quarterly-forecast-error" class="alert alert-danger mt-4 d-none">
-                                An error occurred while generating the forecast. Please try again.
-                            </div>
+                        <div class="card-body text-center">
+                            <img 
+                                src="{% static 'img/Quarterly_Frequency_-_Forecast.png' %}" 
+                                class="img-fluid" 
+                                alt="Quarterly Future Forecast" 
+                                style="max-height: 400px;"
+                                onerror="this.onerror=null; this.src='/static/img/no_image.png'; this.alt='No forecast data available';"
+                            >
                         </div>
                     </div>
                 </div>
@@ -287,67 +262,25 @@
     </div>
 </div>
 
-{% block extra_js %}
+<!-- Add script directly in the body -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Format currency function
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-PH', {
-            style: 'currency',
-            currency: 'PHP',
-            minimumFractionDigits: 2
-        }).format(amount);
-    }
+// Function to handle regenerate button click
+function handleRegenerate() {
+    const loadingIndicator = document.getElementById('regenerate-loading');
+    const successMessage = document.getElementById('regenerate-success');
+    const errorMessage = document.getElementById('regenerate-error');
+    const regenerateBtn = document.getElementById('regenerate-forecasts');
     
-    // Format date function
-    function formatDate(dateStr, frequency) {
-        const date = new Date(dateStr);
-        if (frequency === 'W') {
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        } else if (frequency === 'M') {
-            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        } else if (frequency === 'Q') {
-            const quarter = Math.floor((date.getMonth() / 3)) + 1;
-            return `Q${quarter} ${date.getFullYear()}`;
-        }
-        return dateStr;
-    }
+    // Show loading indicator
+    loadingIndicator.classList.remove('d-none');
+    successMessage.classList.add('d-none');
+    errorMessage.classList.add('d-none');
     
-    // Weekly forecast form submission
-    document.getElementById('weekly-forecast-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        generateForecast('W', document.getElementById('weekly-steps').value);
-    });
+    // Disable the button while processing
+    regenerateBtn.disabled = true;
     
-    // Monthly forecast form submission
-    document.getElementById('monthly-forecast-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        generateForecast('M', document.getElementById('monthly-steps').value);
-    });
-    
-    // Quarterly forecast form submission
-    document.getElementById('quarterly-forecast-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        generateForecast('Q', document.getElementById('quarterly-steps').value);
-    });
-    
-    // Generate forecast function
-    function generateForecast(frequency, steps) {
-        // Show loading indicator
-        document.getElementById(`${frequency.toLowerCase()}-forecast-loading`).classList.remove('d-none');
-        document.getElementById(`${frequency.toLowerCase()}-forecast-result`).classList.add('d-none');
-        document.getElementById(`${frequency.toLowerCase()}-forecast-error`).classList.add('d-none');
-        
-        // Determine frequency name for display
-        let frequencyName = 'Weekly';
-        if (frequency === 'M') {
-            frequencyName = 'Monthly';
-        } else if (frequency === 'Q') {
-            frequencyName = 'Quarterly';
-        }
-        
-        // Make AJAX request
-        fetch(`/make_new_forecast/?frequency=${frequency}&steps=${steps}`)
+    // Make AJAX request to generate new forecasts
+    fetch('/area-manager/regenerate-forecasts/')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -356,41 +289,39 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 // Hide loading indicator
-                document.getElementById(`${frequency.toLowerCase()}-forecast-loading`).classList.add('d-none');
+            loadingIndicator.classList.add('d-none');
+            
+            if (data.success) {
+                // Show success message
+                successMessage.classList.remove('d-none');
                 
-                if (data.error) {
+                // Refresh the images with a cache-busting parameter
+                const timestamp = new Date().getTime();
+                const images = document.querySelectorAll('img[src*="Frequency_-_"]');
+                images.forEach(img => {
+                    const originalSrc = img.src.split('?')[0];
+                    img.src = originalSrc + '?' + timestamp;
+                });
+            } else {
                     // Show error message
-                    document.getElementById(`${frequency.toLowerCase()}-forecast-error`).textContent = data.error;
-                    document.getElementById(`${frequency.toLowerCase()}-forecast-error`).classList.remove('d-none');
-                } else {
-                    // Update image
-                    document.getElementById(`${frequency.toLowerCase()}-forecast-image`).src = data.image_path + '?' + new Date().getTime(); // Add timestamp to prevent caching
-                    
-                    // Update table
-                    const tableBody = document.getElementById(`${frequency.toLowerCase()}-forecast-table`).getElementsByTagName('tbody')[0];
-                    tableBody.innerHTML = '';
-                    
-                    data.forecast_data.forEach(item => {
-                        const row = tableBody.insertRow();
-                        const dateCell = row.insertCell(0);
-                        const valueCell = row.insertCell(1);
-                        
-                        dateCell.textContent = formatDate(item.date, frequency);
-                        valueCell.textContent = formatCurrency(item.value);
-                    });
-                    
-                    // Show results
-                    document.getElementById(`${frequency.toLowerCase()}-forecast-result`).classList.remove('d-none');
-                }
+                errorMessage.textContent = data.error || 'An error occurred while updating forecasts.';
+                errorMessage.classList.remove('d-none');
+            }
+            
+            // Re-enable the button
+            regenerateBtn.disabled = false;
             })
             .catch(error => {
-                // Hide loading indicator and show error
-                document.getElementById(`${frequency.toLowerCase()}-forecast-loading`).classList.add('d-none');
-                document.getElementById(`${frequency.toLowerCase()}-forecast-error`).classList.remove('d-none');
-                console.error('Error generating forecast:', error);
-            });
-    }
-});
+            // Hide loading indicator
+            loadingIndicator.classList.add('d-none');
+            
+            // Show error message
+            errorMessage.textContent = error.message || 'An error occurred while updating forecasts.';
+            errorMessage.classList.remove('d-none');
+            
+            // Re-enable the button
+            regenerateBtn.disabled = false;
+        });
+}
 </script>
-{% endblock %}
 {% endblock %} 

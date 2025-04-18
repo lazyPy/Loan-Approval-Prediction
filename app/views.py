@@ -1,24 +1,27 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db import transaction
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, F
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar
+import json
+import os
+import re
+from decimal import Decimal, InvalidOperation, DivisionByZero
 from django import forms
 from .forms import *
 from .models import *
 from django.contrib.auth.models import User
-import json
-from decimal import Decimal, InvalidOperation, DivisionByZero
 import pandas as pd
 import numpy as np
+# Add matplotlib Agg backend configuration
+import matplotlib
+matplotlib.use('Agg')  # Set non-interactive backend to avoid GUI errors
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import joblib
-import os
-import re
 from django.db import models
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
@@ -28,6 +31,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from functools import wraps
+from PIL import Image, ImageDraw, ImageFont
 
 def role_required(allowed_roles):
     def decorator(view_func):
@@ -70,6 +74,9 @@ def loan_application_step(request, step=1):
         10: {'form': RequiredDocumentForm, 'template': 'documents.html', 'title': 'Required Documents'},
         11: {'form': MarketingForm, 'template': 'marketing.html', 'title': 'Marketing Information'},
     }
+    
+    # Set a session flag to indicate privacy notice acknowledgment
+    request.session['privacy_notice_acknowledged'] = True
     
     # Get loan application identifier from session, but don't create anything yet
     loan_id = request.session.get('loan_id')
@@ -208,7 +215,9 @@ def loan_application_step(request, step=1):
                     except Exception as e:
                         print(f"Error creating monthly cash flow: {e}")
                     
-                    messages.success(request, 'Loan application submitted successfully!')
+                    # Set success message with reference number
+                    messages.success(request, f'Thank you for applying! Your reference number is {loan.reference_number}. You can check your application status anytime here on our website!')
+                    
                     # Clean up session data
                     if 'loan_id' in request.session:
                         del request.session['loan_id']
@@ -218,6 +227,10 @@ def loan_application_step(request, step=1):
                     for i in range(1, 12):
                         if f'step_{i}_files' in request.session:
                             del request.session[f'step_{i}_files']
+                    
+                    # Set submitted flag in session
+                    request.session['submitted'] = True
+                    
                     return redirect('loan_status', reference_number=loan.reference_number)
             
             # Redirect to next step if not the final step
@@ -227,6 +240,11 @@ def loan_application_step(request, step=1):
         # For GET requests, try to get saved data from session
         session_forms = request.session.get('loan_form_data', {})
         saved_data = session_forms.get(str(step))
+        
+        # Check if application was already submitted
+        if request.session.get('submitted'):
+            messages.warning(request, "Your application has already been submitted. You cannot modify it.")
+            return redirect('home')
         
         if saved_data:
             form_class = FORMS[step]['form']
@@ -246,7 +264,8 @@ def loan_application_step(request, step=1):
         'step': step,
         'total_steps': len(FORMS),
         'title': FORMS[step]['title'],
-        'FORMS': FORMS
+        'FORMS': FORMS,
+        'submitted': request.session.get('submitted', False)
     }
     
     # For step 11, check if all previous steps have been completed
@@ -280,7 +299,15 @@ def loan_application_step(request, step=1):
 def loan_status(request, reference_number):
     try:
         loan = Borrower.objects.get(reference_number=reference_number)
-        return render(request, 'app/loan_status.html', {'loan': loan})
+        
+        # Get the current interest rate from the InterestRate model
+        from .models import InterestRate
+        current_interest_rate = InterestRate.get_active_rate()
+        
+        return render(request, 'app/loan_status.html', {
+            'loan': loan,
+            'current_interest_rate': current_interest_rate
+        })
     except Borrower.DoesNotExist:
         messages.error(request, 'No loan application found with this reference number.')
         return redirect('check_status')
@@ -315,10 +342,10 @@ def loan_details_view(request, loan_id):
             status = loan.status
             if form.cleaned_data['complete_documents'] == 'NO':
                 status.status = 'HOLD'
-                status.remarks = f"Documents incomplete. {form.cleaned_data['remarks']}"
+                status.remarks = form.cleaned_data['remarks']
             elif form.cleaned_data['complete_documents'] == 'YES':
                 status.status = 'PROCEED_CI'
-                status.remarks = f"Documents complete. {form.cleaned_data['remarks']}"
+                status.remarks = form.cleaned_data['remarks']
             else:
                 status.status = 'CANCELLED'
                 status.remarks = f"Application cancelled. {form.cleaned_data['remarks']}"
@@ -633,7 +660,7 @@ def quick_loan_prediction(request, loan_id):
                 loan=loan,
                 defaults={
                     'approval_status': approval_status,
-                    'remarks': f"AI Prediction: {prediction_result} with {prediction_probability * 100:.2f}% confidence."
+                    'remarks': ''
                 }
             )
             
@@ -641,7 +668,7 @@ def quick_loan_prediction(request, loan_id):
             loan_status, _ = LoanStatus.objects.get_or_create(loan=loan)
             if loan_status.status != 'PROCEED_LAO':
                 loan_status.status = 'PROCEED_LAO'
-                loan_status.remarks = f"AI Prediction: {prediction_result}, awaiting human review."
+                loan_status.remarks = 'Awaiting human review.'
                 loan_status.save()
             
             return JsonResponse({
@@ -1346,6 +1373,61 @@ def area_manager_forecasting(request):
             if not os.path.exists(os.path.join(models_dir, file)):
                 messages.warning(request, f"Missing model file: {file} for {config['name']} forecasting.")
     
+    # Define the static image directory
+    img_dir = 'static/img'
+    
+    # Ensure the static/img directory exists
+    os.makedirs(img_dir, exist_ok=True)
+    
+    # Define all required images
+    required_images = [
+        f"{freq_name}_Frequency_-_Historical_Data.png" 
+        for freq_name in ['Weekly', 'Monthly', 'Quarterly']
+    ] + [
+        f"{freq_name}_Frequency_-_Model_Performance.png" 
+        for freq_name in ['Weekly', 'Monthly', 'Quarterly']
+    ] + ['no_image.png']
+    
+    # Check if any required images are missing
+    missing_images = []
+    for img in required_images:
+        img_path = os.path.join(img_dir, img)
+        if not os.path.exists(img_path):
+            missing_images.append(img)
+    
+    # Generate missing images if needed
+    if missing_images:
+        print(f"Missing images: {missing_images}")
+        try:
+            # Try to generate initial images
+            from .forecasting import generate_initial_images
+            success = generate_initial_images()
+            
+            if success:
+                messages.success(request, "Generated forecasting visualizations successfully.")
+            else:
+                messages.warning(request, "Could not generate all forecasting visualizations. Using placeholder images.")
+                
+                # If still missing any required images, use create_placeholder_images command
+                still_missing = []
+                for img in required_images:
+                    if not os.path.exists(os.path.join(img_dir, img)):
+                        still_missing.append(img)
+                
+                if still_missing:
+                    print(f"Still missing after generate_initial_images: {still_missing}")
+                    # Create placeholder images for the missing ones
+                    from django.core.management import call_command
+                    call_command('create_placeholder_images')
+        except Exception as e:
+            messages.error(request, f"Error generating images: {str(e)}")
+            # Create placeholder images as fallback
+            try:
+                from django.core.management import call_command
+                call_command('create_placeholder_images')
+            except:
+                pass
+    
     context = {
         'frequencies': frequencies
     }
@@ -1353,69 +1435,133 @@ def area_manager_forecasting(request):
     return render(request, 'app/area_manager/forecasting.html', context)
 
 @login_required
-def make_new_forecast(request, freq, steps):
-    """Generate a new forecast based on user parameters using pre-trained models"""
+def make_new_forecast(request):
+    """Generate a new forecast based on user parameters"""
     if request.method == 'GET':
         try:
-            # Check if frequency is valid
-            if freq not in ['W', 'M', 'Q']:
+            # Get parameters from request
+            frequency = request.GET.get('frequency')
+            steps = int(request.GET.get('steps', 12))
+            
+            # Validate frequency
+            if frequency not in ['W', 'M', 'Q']:
                 return JsonResponse({'error': 'Invalid frequency'}, status=400)
             
-            # Convert steps to integer
-            steps = int(steps)
+            # Generate forecast using the updated function
+            from .forecasting import make_new_forecast
+            forecast_df, result = make_new_forecast(frequency, steps)
             
-            # Load the saved model and associated files
-            models_dir = 'app/ml_models'
-            model_path = os.path.join(models_dir, f'lstm_{freq.lower()}_model.keras')
-            scaler_path = os.path.join(models_dir, f'scaler_{freq.lower()}.pkl')
-            config_path = os.path.join(models_dir, f'config_{freq.lower()}.txt')
+            if forecast_df is None:
+                # If forecast generation failed, try to create a simple forecast
+                try:
+                    from .forecasting import get_recent_completed_loans, resample_data
+                    import numpy as np
+                    import pandas as pd
+                    import os
+                    from django.utils import timezone
+                    
+                    # Get recent data
+                    df = get_recent_completed_loans()
+                    if len(df) > 0:
+                        resampled_df = resample_data(df, frequency)
+                        
+                        # Create a simple forecast based on average growth
+                        last_values = resampled_df['Sales'].values[-min(3, len(resampled_df)):]
+                        if len(last_values) >= 2:
+                            avg_growth = np.mean([last_values[i] - last_values[i-1] for i in range(1, len(last_values))])
+                            forecast_values = [last_values[-1] + avg_growth * (i+1) for i in range(steps)]
+                        else:
+                            # If only one data point, use it as baseline with random growth
+                            base_value = last_values[-1]
+                            forecast_values = [base_value * (1 + np.random.uniform(-0.05, 0.1)) for _ in range(steps)]
+                        
+                        # Create future dates
+                        last_date = resampled_df.index[-1]
+                        freq_map = {'W': 'W', 'M': 'ME', 'Q': 'QE'}
+                        freq_to_use = freq_map.get(frequency, 'ME')
+                        
+                        if frequency == 'W':
+                            future_dates = pd.date_range(start=last_date + pd.Timedelta(weeks=1), periods=steps, freq=freq_to_use)
+                        elif frequency == 'M':
+                            future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=steps, freq=freq_to_use)
+                        elif frequency == 'Q':
+                            future_dates = pd.date_range(start=last_date + pd.Timedelta(days=92), periods=steps, freq=freq_to_use)
+                        
+                        # Create forecast DataFrame
+                        forecast_df = pd.DataFrame({
+                            'Date': future_dates,
+                            'Forecast': forecast_values
+                        }).set_index('Date')
+                        
+                        # Generate a simple forecast chart
+                        freq_name = {'W': 'Weekly', 'M': 'Monthly', 'Q': 'Quarterly'}[frequency]
+                        title = f"{freq_name} Frequency - Forecast"
+                        
+                        # Use matplotlib for charting
+                        import matplotlib.pyplot as plt
+                        plt.figure(figsize=(12, 6))
+                        plt.plot(resampled_df.index, resampled_df['Sales'], label='Historical')
+                        plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red')
+                        plt.title(title)
+                        plt.xlabel('Date')
+                        plt.ylabel('Amount')
+                        plt.legend()
+                        plt.grid(True)
+                        
+                        # Save the chart
+                        img_dir = 'static/img'
+                        os.makedirs(img_dir, exist_ok=True)
+                        image_path = os.path.join(img_dir, f"{title.replace(' ', '_').lower()}.png")
+                        plt.savefig(image_path)
+                        plt.close()
+                        
+                        # Format data for response
+                        forecast_data = []
+                        for date, value in forecast_df.iterrows():
+                            forecast_data.append({
+                                'date': date.strftime('%Y-%m-%d'),
+                                'value': float(value['Forecast'])
+                            })
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'forecast_data': forecast_data,
+                            'image_path': f"/static/img/{title.replace(' ', '_').lower()}.png",
+                            'note': 'Simple forecast generated due to model issues'
+                        })
+                    
+                except Exception as fallback_error:
+                    print(f"Fallback forecast generation failed: {fallback_error}")
+                
+                # If all fails, return the error
+                return JsonResponse({'error': result})
             
-            # Check if all files exist
-            if not all(os.path.exists(path) for path in [model_path, scaler_path, config_path]):
-                return JsonResponse({'error': 'Model files not found'}, status=404)
-            
-            # Load the model and scaler
-            model = load_model(model_path)
-            scaler = joblib.load(scaler_path)
-            
-            # Load configuration
-            with open(config_path, 'r') as f:
-                lines = f.readlines()
-                seq_length = int(lines[0].split(': ')[1])
-                features = lines[1].split(': ')[1].split(',')
-            
-            # Create a dummy sequence - In a real application, you would use actual historical data
-            # This is a simplified approach for demonstration
-            dummy_sequence = np.zeros((seq_length, len(features)))
-            for i in range(seq_length):
-                # Fill first column (Sales) with some sample values
-                dummy_sequence[i, 0] = 0.5 + (i * 0.1)  # Simple increasing pattern
-            
-            # Generate future forecast
-            forecast = generate_future_forecast(model, dummy_sequence, steps, scaler, freq)
-            
-            # Generate a sample forecast chart
-            frequency_names = {'W': 'Weekly', 'M': 'Monthly', 'Q': 'Quarterly'}
-            chart_title = f"{frequency_names[freq]} Frequency - New Forecast"
-            image_path = generate_forecast_chart(forecast, chart_title)
-            
-            # Format the forecast for JSON response
+            # Format the forecast data for JSON response
             forecast_data = []
-            for date, value in forecast.iterrows():
+            for date, value in forecast_df.iterrows():
                 forecast_data.append({
                     'date': date.strftime('%Y-%m-%d'),
                     'value': float(value['Forecast'])
                 })
             
+            # Ensure image path starts with /static/
+            image_path = result
+            if not image_path.startswith('/static/'):
+                image_path = f"/{result}"
+                if not image_path.startswith('/static/'):
+                    image_path = f"/static/img/{os.path.basename(result)}"
+            
+            # Return the forecast data and image path
             return JsonResponse({
                 'success': True,
-                'forecast': forecast_data,
+                'forecast_data': forecast_data,
                 'image_path': image_path
             })
+            
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'error': str(e)})
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -1951,3 +2097,43 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('home')
+
+def contact_us(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        
+        # Here you would typically send an email or save the contact form data
+        # For now, we'll just redirect with a success message
+        
+        messages.success(request, "Thank you for your message! We'll get back to you soon.")
+        return redirect('contact_us')
+    
+    return render(request, 'app/contact.html')
+
+@login_required
+@role_required(['AREA'])
+def regenerate_forecasts(request):
+    """Regenerate all forecast images with the latest data"""
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'error': 'Only GET requests are allowed'})
+    
+    try:
+        # Import the forecasting module functions
+        from .forecasting import generate_initial_images
+        
+        # Regenerate all forecast images
+        success = generate_initial_images()
+        
+        if success:
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to generate forecast images'})
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        print(f"Error regenerating forecasts: {error_msg}")
+        print(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': error_msg})

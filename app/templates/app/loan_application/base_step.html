@@ -35,7 +35,7 @@
                             <div></div>
                             {% endif %}
                             
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
                                 {% if step == total_steps %}
                                     Submit Application
                                 {% else %}
@@ -45,6 +45,26 @@
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmSubmitModal" tabindex="-1" aria-labelledby="confirmSubmitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmSubmitModalLabel">Confirm Submission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please ensure that all the information provided is correct and true.</p>
+                <p>Are you sure you want to submit your application?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Review Application</button>
+                <button type="button" class="btn btn-primary" id="confirmSubmit">Yes, Submit Application</button>
             </div>
         </div>
     </div>
@@ -111,6 +131,14 @@ document.getElementById('stepForm').addEventListener('submit', function(e) {
     if (!isValid) {
         e.preventDefault();
         alert('Please fill in all required fields');
+        return;
+    }
+
+    // If this is the final step, show confirmation modal
+    if ({% if step == total_steps %}true{% else %}false{% endif %}) {
+        e.preventDefault();
+        const modal = new bootstrap.Modal(document.getElementById('confirmSubmitModal'));
+        modal.show();
     }
 });
 
@@ -126,6 +154,20 @@ if (prevStepBtn) {
         
         // Navigate to previous step
         window.location.href = this.href;
+    });
+}
+
+// Handle final submission
+document.getElementById('confirmSubmit').addEventListener('click', function() {
+    // Submit the form
+    document.getElementById('stepForm').submit();
+});
+
+// Prevent going back after submission
+if ({% if submitted %}true{% else %}false{% endif %}) {
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', function() {
+        window.history.pushState(null, '', window.location.href);
     });
 }
 </script>

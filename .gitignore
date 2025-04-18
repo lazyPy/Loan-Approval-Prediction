@@ -1,6 +1,7 @@
 # Django
 db.sqlite3
 media/
+staticfiles/
 
 # Virtual Environment
 env/
@@ -19,3 +20,6 @@ app/migrations/*
 
 # Ignore __pycache__ directories
 __pycache__/
+
+import_loans.py
+loan_template.csv

@@ -23,8 +23,8 @@
                     <table class="table">
                         <tbody>
                             <tr>
-                                <th width="40%">Loan ID:</th>
-                                <td>{{ loan.loan_id }}</td>
+                                <th width="40%">Reference Number:</th>
+                                <td>{{ loan.reference_number }}</td>
                             </tr>
                             <tr>
                                 <th>Full Name:</th>
@@ -50,7 +50,7 @@
                     </table>
                 </div>
                 <div class="col-md-6">
-                    <h4>Contact & Employment</h4>
+                    <h4>Contact Information</h4>
                     <table class="table">
                         <tbody>
                             <tr>
@@ -62,25 +62,105 @@
                                 <td>{{ loan.contact_info.email_address }}</td>
                             </tr>
                             <tr>
-                                <th>Employment Status:</th>
-                                <td>{{ loan.employment.get_employment_status_display }}</td>
-                            </tr>
-                            <tr>
-                                <th>Employer:</th>
-                                <td>{{ loan.employment.employer_business_name }}</td>
-                            </tr>
-                            <tr>
-                                <th>Monthly Income:</th>
-                                <td>₱{{ loan.employment.monthly_net_income|floatformat:2|intcomma }}</td>
-                            </tr>
-                            <tr>
-                                <th>Education:</th>
-                                <td>{{ loan.education.get_education_display }} - {{ loan.education.course }}</td>
+                                <th>Address:</th>
+                                <td>{{ loan.contact_info.no_and_street }}, {{ loan.contact_info.barangay }}, {{ loan.contact_info.municipality }}, {{ loan.contact_info.province }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4>Source of Income</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Employment Status:</th>
+                                <td>{{ loan.employment.get_employment_status_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Source of Funds:</th>
+                                <td>{{ loan.employment.get_source_of_funds_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Employer/Business:</th>
+                                <td>{{ loan.employment.employer_business_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Contact Number:</th>
+                                <td>{{ loan.employment.employer_contact_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Position:</th>
+                                <td>{{ loan.employment.position }}</td>
+                            </tr>
+                            <tr>
+                                <th>Monthly Income:</th>
+                                <td>₱{{ loan.employment.monthly_net_income|floatformat:2|intcomma }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h4>Educational Background</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Education Level:</th>
+                                <td>{{ loan.education.get_education_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Course:</th>
+                                <td>{{ loan.education.course }}</td>
+                            </tr>
+                            <tr>
+                                <th>School Last Attended:</th>
+                                <td>{{ loan.education.school_last_attended }}</td>
+                            </tr>
+                            <tr>
+                                <th>Year Graduated:</th>
+                                <td>{{ loan.education.year_graduated }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            {% if loan.spouse %}
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h4>Spouse/Co-Borrower Information</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="20%">Name:</th>
+                                <td>{{ loan.spouse.last_name }}, {{ loan.spouse.first_name }} {{ loan.spouse.middle_name }}</td>
+                                <th width="20%">Relation:</th>
+                                <td>{{ loan.spouse.relation_to_borrower }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date of Birth:</th>
+                                <td>{{ loan.spouse.date_of_birth|date:"F d, Y" }}</td>
+                                <th>Education:</th>
+                                <td>{{ loan.spouse.get_education_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Employer/Business:</th>
+                                <td>{{ loan.spouse.employer_business_name }}</td>
+                                <th>Contact Number:</th>
+                                <td>{{ loan.spouse.employer_contact_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Monthly Income:</th>
+                                <td colspan="3">₱{{ loan.spouse.net_income|floatformat:2|intcomma }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -105,7 +185,7 @@
                             </tr>
                             <tr>
                                 <th>Down Payment:</th>
-                                <td>{{ loan.loan_details.down_payment_percentage|floatformat:0 }}% (₱{{ loan.loan_details.estimated_vehicle_value|mul:loan.loan_details.down_payment_percentage|floatformat:2|intcomma }})</td>
+                                <td>{{ loan.loan_details.down_payment_percentage|mul:100|floatformat:2 }}% (₱{{ loan.loan_details.estimated_vehicle_value|mul:loan.loan_details.down_payment_percentage|floatformat:2|intcomma }})</td>
                             </tr>
                             <tr>
                                 <th>Loan Amount:</th>
@@ -159,8 +239,35 @@
                                 <td>{{ loan.vehicle.get_fuel_display }}</td>
                             </tr>
                             <tr>
-                                <th>Dealer:</th>
+                                <th>Plate Number:</th>
+                                <td>{{ loan.vehicle.plate_no|default:"Not Available" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Engine Number:</th>
+                                <td>{{ loan.vehicle.engine_no }}</td>
+                            </tr>
+                            <tr>
+                                <th>Chassis Number:</th>
+                                <td>{{ loan.vehicle.chassis_no }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Dealer Information</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th width="40%">Dealer Name:</th>
                                 <td>{{ loan.vehicle.dealer_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Dealer Address:</th>
+                                <td>{{ loan.vehicle.dealer_address }}</td>
+                            </tr>
+                            <tr>
+                                <th>Contact Number:</th>
+                                <td>{{ loan.vehicle.dealer_contact_number }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -218,19 +325,63 @@
                             </div>
                             <div class="card-body">
                                 {% if loan.loan_details %}
-                                    <table class="table table-sm">
+                                    <!-- Loan Schedule Summary -->
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <table class="table table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <th width="40%">Loan Amount:</th>
+                                                        <td>₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Loan Term:</th>
+                                                        <td>{{ loan.loan_details.loan_amount_term }} months</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Monthly Interest:</th>
+                                                        <td>{{ current_interest_rate|floatformat:2 }}% per annum</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <th width="40%">Monthly Payment:</th>
+                                                        <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Start Date:</th>
+                                                        <td>{% if loan.loan_disbursement_officer_remarks %}
+                                                            {{ loan.loan_disbursement_officer_remarks.disbursement_date|date:"M d, Y" }}
+                                                            {% else %}Pending Disbursement{% endif %}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Maturity Date:</th>
+                                                        <td>{% if loan.loan_disbursement_officer_remarks %}
+                                                            {{ loan.loan_disbursement_officer_remarks.maturity_date|date:"M d, Y" }}
+                                                            {% else %}Pending Disbursement{% endif %}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <table class="table table-sm" id="loanAmortizationTable">
                                         <thead>
                                             <tr>
                                                 <th>Period</th>
                                                 <th>Principal</th>
                                                 <th>Interest</th>
                                                 <th>Monthly Payment</th>
+                                                <th>Due Date</th>
                                                 <th>Balance</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% with loan_amount=loan.loan_details.loan_amount_applied interest_rate=current_interest_rate term=loan.loan_details.loan_amount_term payment=loan.loan_details.monthly_amortization %}
-                                                {% for i in "12345" %}
+                                                {% for i in term|make_range %}
                                                     {% with period=forloop.counter %}
                                                         <tr>
                                                             <td>{{ period }}</td>
@@ -239,8 +390,9 @@
                                                                     <td>₱{{ principal|floatformat:2|intcomma }}</td>
                                                                     <td>₱{{ interest|floatformat:2|intcomma }}</td>
                                                                     <td>₱{{ payment|floatformat:2|intcomma }}</td>
-                                                                    {% with balance=loan_amount|sub:principal|mul:period %}
-                                                                        <td>₱{{ balance|floatformat:2|intcomma }}</td>
+                                                                    <td>{% if loan.loan_disbursement_officer_remarks %}{{ loan.loan_disbursement_officer_remarks.disbursement_date|add_months:period }}{% else %}Pending Disbursement{% endif %}</td>
+                                                                    {% with remaining_balance=loan_amount|sub:principal|mul:period %}
+                                                                        <td>₱{{ remaining_balance|floatformat:2|intcomma }}</td>
                                                                     {% endwith %}
                                                                 {% endwith %}
                                                             {% endwith %}
@@ -249,23 +401,7 @@
                                                 {% endfor %}
                                             {% endwith %}
                                         </tbody>
-                                        <tfoot>
-                                            <tr class="table-info">
-                                                <th>Summary</th>
-                                                <td colspan="4">
-                                                    <small>
-                                                        Loan Amount: ₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }} |
-                                                        Interest Rate: {{ current_interest_rate|default:"10.00"|floatformat:2 }}% |
-                                                        Term: {{ loan.loan_details.loan_amount_term }} months |
-                                                        Monthly Payment: ₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}
-                                                    </small>
-                                                </td>
-                                            </tr>
-                                        </tfoot>
                                     </table>
-                                    <div class="text-center">
-                                        <p class="small text-muted mb-0">Showing first 5 periods only</p>
-                                    </div>
                                 {% else %}
                                     <div class="alert alert-info">Loan details not available</div>
                                 {% endif %}
@@ -429,6 +565,8 @@
     </div>
 </div>
 
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .status-progress-bar {
@@ -449,4 +587,30 @@
     }
 </style>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#loanAmortizationTable').DataTable({
+            "pageLength": 5,
+            "searching": false,
+            "ordering": false,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "dom": '<"row"<"col-sm-6"l><"col-sm-6">>rt<"row"<"col-sm-6"i><"col-sm-6"p>>',
+            "language": {
+                "lengthMenu": "",
+                "info": "Showing _START_ to _END_ of _TOTAL_ periods",
+                "infoEmpty": "No periods available",
+                "paginate": {
+                    "first": "<i class='fas fa-angle-double-left'></i>",
+                    "last": "<i class='fas fa-angle-double-right'></i>",
+                    "next": "<i class='fas fa-angle-right'></i>",
+                    "previous": "<i class='fas fa-angle-left'></i>"
+                }
+            }
+        });
+    });
+</script>
 {% endblock %} 
