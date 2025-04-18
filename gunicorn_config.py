@@ -1,10 +1,8 @@
 import multiprocessing
 import os
 
-# Get port from environment variable with a fallback to 8000
-port = os.environ.get('PORT', '8000')
-
-# Bind to 0.0.0.0 to allow external access
+# Get port from environment variable or use default
+port = os.environ.get('PORT', '10000')
 bind = f"0.0.0.0:{port}"
 
 # Worker configuration
@@ -22,8 +20,6 @@ max_requests_jitter = 10
 accesslog = "-"
 errorlog = "-"
 loglevel = "info"
-capture_output = True
-enable_stdio_inheritance = True
 
 # Process naming
 proc_name = "loan_prediction_app"
@@ -31,23 +27,17 @@ proc_name = "loan_prediction_app"
 # Preload app to avoid loading ML models multiple times
 preload_app = True
 
-# Debugging help
-spew = False
-check_config = True
-
-def when_ready(server):
-    """Log when server is ready"""
-    print(f"Server is ready. Listening on: {bind}")
+# SSL Configuration (if needed)
+# keyfile = "path/to/keyfile"
+# certfile = "path/to/certfile"
 
 def on_starting(server):
     """Initialize the application before workers are spawned"""
-    print("Initializing application and ML models...")
-    print(f"Using port: {port}")
-    print(f"Binding to: {bind}")
+    server.log.info("Initializing application and ML models...")
 
 def post_fork(server, worker):
     """Reduce memory usage after forking"""
-    print(f"Worker spawned (pid: {worker.pid})")
+    server.log.info("Worker spawned (pid: %s)", worker.pid)
 
 def pre_fork(server, worker):
     """Pre-fork handler for initialization"""
@@ -55,8 +45,4 @@ def pre_fork(server, worker):
 
 def pre_exec(server):
     """Pre-execution handler"""
-    print("Forked child, re-executing.")
-
-# SSL Configuration (if needed)
-# keyfile = "path/to/keyfile"
-# certfile = "path/to/certfile" 
+    server.log.info("Forked child, re-executing.") 
