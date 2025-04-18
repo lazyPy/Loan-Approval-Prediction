@@ -55,20 +55,35 @@ def get_recent_completed_loans():
     return df
 
 def resample_data(df, freq):
-    """Resample data to specified frequency"""
-    if len(df) == 0:
-        return pd.DataFrame()
+    """
+    Resample data to specified frequency
+    frequency: 'W' for weekly, 'M' for monthly, 'Q' for quarterly
+    """
+    try:
+        # First handle duplicate dates by aggregating them
+        df = df.groupby(df.index).sum()
         
-    if freq == 'W':
-        daily_df = df.resample('D').asfreq()
-        daily_df = daily_df.ffill()
-        resampled_df = daily_df.resample('W').sum()
-        resampled_df = resampled_df.replace(0, np.nan).ffill()
-    else:
-        freq_map = {'M': 'ME', 'Q': 'QE'}
-        freq_to_use = freq_map.get(freq, freq)
-        resampled_df = df.resample(freq_to_use).sum()
-    return resampled_df
+        # Define resampling function based on frequency
+        if freq == 'W':
+            # For weekly data - use end of week (Friday)
+            resampled_df = df.resample('W-FRI').sum()
+        elif freq == 'M':
+            # For monthly data - use month end
+            resampled_df = df.resample('MS').sum()  # Month Start instead of ME
+        elif freq == 'Q':
+            # For quarterly data
+            resampled_df = df.resample('QS').sum()  # Quarter Start instead of QE
+        else:
+            raise ValueError(f"Frequency must be 'W', 'M', or 'Q', got {freq}")
+        
+        # Fill any missing values using forward fill
+        resampled_df.fillna(method='ffill', inplace=True)
+        
+        return resampled_df
+    except Exception as e:
+        print(f"Error processing {freq} frequency: {str(e)}")
+        # Return empty DataFrame with same columns as input
+        return pd.DataFrame(columns=df.columns)
 
 def create_features(df):
     """Create time-based features for the model"""

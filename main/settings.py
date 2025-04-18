@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'cloudinary_storage',
+    'cloudinary',
     'app',
 ]
 
@@ -142,9 +144,20 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Media files (Uploads)
+# Media files configuration
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Cloudinary configuration
+if 'RENDER' in os.environ:
+    # Use Cloudinary in production
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': 'dyjrntxho',
+        'API_KEY': '555568551512338',
+        'API_SECRET': 'hEo8oxtNXNM1-gr5bu24IOUoBRI',
+    }
+    # Set the default file storage to use Cloudinary
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Login and Logout Configuration
 LOGIN_URL = 'login'
