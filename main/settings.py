@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 # Database Configuration
 # Uses PostgreSQL in production (Render) and SQLite in development
-if not 'RENDER' in os.environ:
+if 'RENDER' in os.environ:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
