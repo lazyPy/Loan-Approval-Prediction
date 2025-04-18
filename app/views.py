@@ -24,7 +24,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import joblib
 from django.db import models
 import matplotlib.pyplot as plt
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.conf import settings

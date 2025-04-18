@@ -5,10 +5,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
-import tensorflow as tf
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
-from tensorflow.keras.callbacks import EarlyStopping
+from keras.models import Sequential, load_model
+from keras.layers import LSTM, Dense, Dropout, Input
+from keras.callbacks import EarlyStopping
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import os
@@ -18,10 +17,11 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Borrower, LoanDisbursementOfficerRemarks, LoanDetails
+import keras.backend as K
 
 # Set random seeds for reproducibility
 np.random.seed(42)
-tf.random.set_seed(42)
+K.set_random_seed(42)
 
 def get_recent_completed_loans():
     """Get recent completed loans data for forecasting"""
