@@ -64,7 +64,11 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <img 
-                                        src="{% static 'img/Weekly_Frequency_-_Historical_Data.png' %}" 
+                                        {% if in_production %}
+                                            src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Weekly_Frequency_-_Historical_Data" 
+                                        {% else %}
+                                            src="{% static 'img/Weekly_Frequency_-_Historical_Data.png' %}" 
+                                        {% endif %}
                                         class="img-fluid" 
                                         alt="Weekly Historical Data" 
                                         style="max-height: 400px;"
@@ -80,7 +84,11 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <img 
-                                        src="{% static 'img/Weekly_Frequency_-_Model_Performance.png' %}" 
+                                        {% if in_production %}
+                                            src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Weekly_Frequency_-_Model_Performance" 
+                                        {% else %}
+                                            src="{% static 'img/Weekly_Frequency_-_Model_Performance.png' %}" 
+                                        {% endif %}
                                         class="img-fluid" 
                                         alt="Weekly Model Performance" 
                                         style="max-height: 400px;"
@@ -105,7 +113,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Weekly_Frequency_-_Trend.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Weekly_Frequency_-_Trend" 
+                                                {% else %}
+                                                    src="{% static 'img/Weekly_Frequency_-_Trend.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Weekly Trend" 
                                                 style="max-height: 200px;"
@@ -121,7 +133,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Weekly_Frequency_-_Seasonal.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Weekly_Frequency_-_Seasonal" 
+                                                {% else %}
+                                                    src="{% static 'img/Weekly_Frequency_-_Seasonal.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Weekly Seasonal Pattern" 
                                                 style="max-height: 200px;"
@@ -137,7 +153,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Weekly_Frequency_-_Residual.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Weekly_Frequency_-_Residual" 
+                                                {% else %}
+                                                    src="{% static 'img/Weekly_Frequency_-_Residual.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Weekly Residual" 
                                                 style="max-height: 200px;"
@@ -157,7 +177,11 @@
                         </div>
                         <div class="card-body text-center">
                             <img 
-                                src="{% static 'img/Weekly_Frequency_-_Forecast.png' %}" 
+                                {% if in_production %}
+                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/weekly_sales_forecast" 
+                                {% else %}
+                                    src="{% static 'img/weekly_sales_forecast.png' %}" 
+                                {% endif %}
                                 class="img-fluid" 
                                 alt="Weekly Future Forecast" 
                                 style="max-height: 400px;"
@@ -179,7 +203,11 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <img 
-                                        src="{% static 'img/Monthly_Frequency_-_Historical_Data.png' %}" 
+                                        {% if in_production %}
+                                            src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Monthly_Frequency_-_Historical_Data" 
+                                        {% else %}
+                                            src="{% static 'img/Monthly_Frequency_-_Historical_Data.png' %}" 
+                                        {% endif %}
                                         class="img-fluid" 
                                         alt="Monthly Historical Data" 
                                         style="max-height: 400px;"
@@ -195,7 +223,11 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <img 
-                                        src="{% static 'img/Monthly_Frequency_-_Model_Performance.png' %}" 
+                                        {% if in_production %}
+                                            src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Monthly_Frequency_-_Model_Performance" 
+                                        {% else %}
+                                            src="{% static 'img/Monthly_Frequency_-_Model_Performance.png' %}" 
+                                        {% endif %}
                                         class="img-fluid" 
                                         alt="Monthly Model Performance" 
                                         style="max-height: 400px;"
@@ -220,7 +252,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Monthly_Frequency_-_Trend.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Monthly_Frequency_-_Trend" 
+                                                {% else %}
+                                                    src="{% static 'img/Monthly_Frequency_-_Trend.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Monthly Trend" 
                                                 style="max-height: 200px;"
@@ -236,7 +272,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Monthly_Frequency_-_Seasonal.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Monthly_Frequency_-_Seasonal" 
+                                                {% else %}
+                                                    src="{% static 'img/Monthly_Frequency_-_Seasonal.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Monthly Seasonal Pattern" 
                                                 style="max-height: 200px;"
@@ -252,7 +292,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Monthly_Frequency_-_Residual.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Monthly_Frequency_-_Residual" 
+                                                {% else %}
+                                                    src="{% static 'img/Monthly_Frequency_-_Residual.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Monthly Residual" 
                                                 style="max-height: 200px;"
@@ -272,7 +316,11 @@
                         </div>
                         <div class="card-body text-center">
                             <img 
-                                src="{% static 'img/Monthly_Frequency_-_Forecast.png' %}" 
+                                {% if in_production %}
+                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/monthly_sales_forecast" 
+                                {% else %}
+                                    src="{% static 'img/monthly_sales_forecast.png' %}" 
+                                {% endif %}
                                 class="img-fluid" 
                                 alt="Monthly Future Forecast" 
                                 style="max-height: 400px;"
@@ -294,7 +342,11 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <img 
-                                        src="{% static 'img/Quarterly_Frequency_-_Historical_Data.png' %}" 
+                                        {% if in_production %}
+                                            src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Quarterly_Frequency_-_Historical_Data" 
+                                        {% else %}
+                                            src="{% static 'img/Quarterly_Frequency_-_Historical_Data.png' %}" 
+                                        {% endif %}
                                         class="img-fluid" 
                                         alt="Quarterly Historical Data" 
                                         style="max-height: 400px;"
@@ -310,7 +362,11 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <img 
-                                        src="{% static 'img/Quarterly_Frequency_-_Model_Performance.png' %}" 
+                                        {% if in_production %}
+                                            src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Quarterly_Frequency_-_Model_Performance" 
+                                        {% else %}
+                                            src="{% static 'img/Quarterly_Frequency_-_Model_Performance.png' %}" 
+                                        {% endif %}
                                         class="img-fluid" 
                                         alt="Quarterly Model Performance" 
                                         style="max-height: 400px;"
@@ -335,7 +391,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Quarterly_Frequency_-_Trend.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Quarterly_Frequency_-_Trend" 
+                                                {% else %}
+                                                    src="{% static 'img/Quarterly_Frequency_-_Trend.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Quarterly Trend" 
                                                 style="max-height: 200px;"
@@ -351,7 +411,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Quarterly_Frequency_-_Seasonal.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Quarterly_Frequency_-_Seasonal" 
+                                                {% else %}
+                                                    src="{% static 'img/Quarterly_Frequency_-_Seasonal.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Quarterly Seasonal Pattern" 
                                                 style="max-height: 200px;"
@@ -367,7 +431,11 @@
                                         </div>
                                         <div class="card-body p-2 text-center">
                                             <img 
-                                                src="{% static 'img/Quarterly_Frequency_-_Residual.png' %}" 
+                                                {% if in_production %}
+                                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/Quarterly_Frequency_-_Residual" 
+                                                {% else %}
+                                                    src="{% static 'img/Quarterly_Frequency_-_Residual.png' %}" 
+                                                {% endif %}
                                                 class="img-fluid" 
                                                 alt="Quarterly Residual" 
                                                 style="max-height: 200px;"
@@ -387,7 +455,11 @@
                         </div>
                         <div class="card-body text-center">
                             <img 
-                                src="{% static 'img/Quarterly_Frequency_-_Forecast.png' %}" 
+                                {% if in_production %}
+                                    src="https://res.cloudinary.com/dyjrntxho/image/upload/forecasts/quarterly_sales_forecast" 
+                                {% else %}
+                                    src="{% static 'img/quarterly_sales_forecast.png' %}" 
+                                {% endif %}
                                 class="img-fluid" 
                                 alt="Quarterly Future Forecast" 
                                 style="max-height: 400px;"
@@ -436,10 +508,16 @@ function handleRegenerate() {
                 
                 // Refresh the images with a cache-busting parameter
                 const timestamp = new Date().getTime();
-                const images = document.querySelectorAll('img[src*="Frequency_-_"]');
+                const images = document.querySelectorAll('img[src*="Frequency_-_"], img[src*="sales_forecast"]');
                 images.forEach(img => {
-                    const originalSrc = img.src.split('?')[0];
-                    img.src = originalSrc + '?' + timestamp;
+                    // For Cloudinary URLs add v parameter for cache busting
+                    if (img.src.includes('cloudinary.com')) {
+                        const originalSrc = img.src.split('?')[0];
+                        img.src = originalSrc + '?v=' + timestamp;
+                    } else {
+                        const originalSrc = img.src.split('?')[0];
+                        img.src = originalSrc + '?' + timestamp;
+                    }
                 });
             } else {
                     // Show error message

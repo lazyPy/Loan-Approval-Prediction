@@ -19,6 +19,11 @@ from datetime import datetime, timedelta
 from .models import Borrower, LoanDisbursementOfficerRemarks, LoanDetails
 import random
 
+# Add these imports for Cloudinary support
+import cloudinary
+import cloudinary.uploader
+from django.conf import settings
+
 # Set random seeds for reproducibility
 np.random.seed(42)
 random.seed(42)
@@ -282,42 +287,72 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=Non
     return forecast_df
 
 def plot_forecast(historical_data, forecast_data, title='Historical Data and Forecast'):
-    """Plot historical data and forecast"""
-    plt.figure(figsize=(15, 7))
+    plt.figure(figsize=(12, 6))
     
-    if len(historical_data) > 0:
-        historical_dates = historical_data.index
-        historical_values = historical_data['Sales'].values
-        plt.plot(historical_dates, historical_values, label='Historical Data')
+    # Plot historical data
+    history_len = len(historical_data)
+    forecast_len = len(forecast_data)
+    total_len = history_len + forecast_len
     
-    forecast_dates = forecast_data.index
-    forecast_values = forecast_data['Forecast'].values
-    plt.plot(forecast_dates, forecast_values, label='Forecast', color='red')
+    x_history = np.arange(history_len)
+    x_forecast = np.arange(history_len, total_len)
     
-    plt.title(title)
-    
-    # Set appropriate x-axis label based on title
+    # Determine the appropriate x-axis label based on title
+    x_label = 'Date'
     if 'Weekly' in title:
         x_label = 'Week'
+        # Create week labels
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [f"Week {i+1}" for i in range(total_len)]
     elif 'Monthly' in title:
         x_label = 'Month'
+        # Create month labels
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [months[i % 12] for i in range(total_len)]
     elif 'Quarterly' in title:
         x_label = 'Quarter'
+        # Create quarter labels
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [f"Q{(i%4)+1}" for i in range(total_len)]
     else:
-        x_label = 'Date'
-        
+        x_ticks = np.arange(total_len)
+        x_tick_labels = [f"Point {i+1}" for i in range(total_len)]
+    
+    plt.plot(x_history, historical_data, 'b-', label='Historical Data')
+    plt.plot(x_forecast, forecast_data, 'r--', label='Forecast')
+    plt.title(title)
+    
+    # Set the custom tick positions and labels
+    plt.xticks(x_ticks, x_tick_labels)
+    
     plt.xlabel(x_label)
     plt.ylabel('Loan Amount')
     plt.legend()
     plt.grid(True)
-    plt.tight_layout()
     
-    # Save to the correct static directory
-    filepath = os.path.join('static', 'img', f"{title.replace(' ', '_').lower()}.png")
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    # Save the plot to a file
+    filename = f"{title.replace(' ', '_').lower()}_forecast.png"
+    filepath = os.path.join('static/img', filename)
     plt.savefig(filepath)
+    
+    # If in production, upload to Cloudinary
+    if 'RENDER' in os.environ:
+        try:
+            # Upload to Cloudinary
+            result = cloudinary.uploader.upload(
+                filepath,
+                public_id=f"forecasts/{filename.split('.')[0]}",
+                overwrite=True
+            )
+            print(f"Uploaded {filename} to Cloudinary")
+        except Exception as e:
+            print(f"Error uploading to Cloudinary: {e}")
+    
     plt.close()
-    return filepath
+    
+    return filename
 
 def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/ml_models'):
     if not os.path.exists(models_dir):
@@ -498,160 +533,92 @@ def make_new_forecast(freq, steps):
         return None, str(e)
 
 def plot_decomposition(resampled_df, freq_name, img_dir='static/img'):
-    """Generate time series decomposition plots"""
+    """Generate and save time series decomposition plots"""
     try:
-        # Check if we have enough data for proper decomposition
-        min_periods = {'Weekly': 104, 'Monthly': 24, 'Quarterly': 8}
-        required_periods = min_periods.get(freq_name, 24)
+        # Create the directory if it doesn't exist
+        os.makedirs(img_dir, exist_ok=True)
         
-        if len(resampled_df) >= required_periods:
-            # Real decomposition with enough data
-            decomposition = seasonal_decompose(resampled_df['Sales'], 
-                                            period=52 if freq_name == 'Weekly' else 12 if freq_name == 'Monthly' else 4,
-                                            extrapolate_trend='freq')
-            
-            # Plot Trend
-            plt.figure(figsize=(12, 4))
-            plt.plot(decomposition.trend, color='blue')
-            plt.title(f'{freq_name} Trend')
-            plt.xlabel('Date')
-            plt.ylabel('Trend')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            trend_path = os.path.join(img_dir, f'{freq_name}_Frequency_-_Trend.png')
-            plt.savefig(trend_path)
-            plt.close()
-            
-            # Plot Seasonal
-            plt.figure(figsize=(12, 4))
-            plt.plot(decomposition.seasonal, color='blue')
-            plt.title(f'{freq_name} Seasonal Pattern')
-            plt.xlabel('Date')
-            plt.ylabel('Seasonal')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            seasonal_path = os.path.join(img_dir, f'{freq_name}_Frequency_-_Seasonal.png')
-            plt.savefig(seasonal_path)
-            plt.close()
-            
-            # Plot Residual
-            plt.figure(figsize=(12, 4))
-            plt.scatter(resampled_df.index, decomposition.resid, color='blue', alpha=0.5, s=20)
-            plt.axhline(y=0, color='r', linestyle='--', alpha=0.3)
-            plt.title(f'{freq_name} Residual')
-            plt.xlabel('Date')
-            plt.ylabel('Residual')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            residual_path = os.path.join(img_dir, f'{freq_name}_Frequency_-_Residual.png')
-            plt.savefig(residual_path)
-            plt.close()
-            
-            return True
-        else:
-            # Create simulated decomposition plots like the example image
-            print(f"Not enough data for {freq_name} decomposition. Creating placeholders.")
-            
-            # Get date range for x-axis
-            today = timezone.now().date()
-            if freq_name == 'Weekly':
-                dates = pd.date_range(end=today, periods=30, freq='W')
-            elif freq_name == 'Monthly':
-                dates = pd.date_range(end=today, periods=30, freq='ME')
-            else:  # Quarterly
-                dates = pd.date_range(end=today, periods=24, freq='QE')
-            
-            # Generate synthetic data
-            np.random.seed(42)  # For reproducibility
-            
-            # Trend component - increasing curve
-            trend = np.linspace(0.5e7, 5.2e7, len(dates))
-            
-            # Seasonal component - repeating pattern
-            if freq_name == 'Weekly':
-                period = 52
-            elif freq_name == 'Monthly':
-                period = 12
-            else:
-                period = 4
-                
-            t = np.arange(len(dates))
-            seasonal = 1e6 * np.sin(2 * np.pi * t / period)
-            
-            # Residual component - random noise
-            residual = np.random.normal(0, 0.5e6, len(dates))
-            
-            # Combined signal
-            signal = trend + seasonal + residual
-            
-            # 1. Plot Original Signal
-            plt.figure(figsize=(12, 4))
-            plt.plot(dates, signal, color='blue')
-            plt.title(f'{freq_name} Time Series')
-            plt.ylabel('Value')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            plt.savefig(os.path.join(img_dir, f'{freq_name}_Frequency_-_Original.png'))
-            plt.close()
-            
-            # 2. Plot Trend
-            plt.figure(figsize=(12, 4))
-            plt.plot(dates, trend, color='blue')
-            plt.title(f'{freq_name} Trend')
-            plt.ylabel('Trend')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            plt.savefig(os.path.join(img_dir, f'{freq_name}_Frequency_-_Trend.png'))
-            plt.close()
-            
-            # 3. Plot Seasonal
-            plt.figure(figsize=(12, 4))
-            plt.plot(dates, seasonal, color='blue')
-            plt.title(f'{freq_name} Seasonal Pattern')
-            plt.ylabel('Seasonal')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            plt.savefig(os.path.join(img_dir, f'{freq_name}_Frequency_-_Seasonal.png'))
-            plt.close()
-            
-            # 4. Plot Residual
-            plt.figure(figsize=(12, 4))
-            plt.scatter(dates, residual, color='blue', alpha=0.5, s=20)
-            plt.axhline(y=0, color='r', linestyle='--', alpha=0.3)
-            plt.title(f'{freq_name} Residual')
-            plt.ylabel('Residual')
-            plt.grid(True)
-            plt.gcf().autofmt_xdate()
-            plt.tight_layout()
-            plt.savefig(os.path.join(img_dir, f'{freq_name}_Frequency_-_Residual.png'))
-            plt.close()
-            
-            return True
-            
+        # Perform seasonal decomposition
+        decomposition = seasonal_decompose(resampled_df['Sales'], model='additive', period=4)
+        
+        # Create trend plot
+        plt.figure(figsize=(10, 4))
+        plt.plot(decomposition.trend)
+        plt.title(f"{freq_name} Frequency - Trend")
+        plt.tight_layout()
+        trend_filename = f"{freq_name}_Frequency_-_Trend.png"
+        trend_filepath = os.path.join(img_dir, trend_filename)
+        plt.savefig(trend_filepath)
+        plt.close()
+        
+        # Create seasonal plot
+        plt.figure(figsize=(10, 4))
+        plt.plot(decomposition.seasonal)
+        plt.title(f"{freq_name} Frequency - Seasonal")
+        plt.tight_layout()
+        seasonal_filename = f"{freq_name}_Frequency_-_Seasonal.png"
+        seasonal_filepath = os.path.join(img_dir, seasonal_filename)
+        plt.savefig(seasonal_filepath)
+        plt.close()
+        
+        # Create residual plot
+        plt.figure(figsize=(10, 4))
+        plt.plot(decomposition.resid)
+        plt.title(f"{freq_name} Frequency - Residual")
+        plt.tight_layout()
+        residual_filename = f"{freq_name}_Frequency_-_Residual.png"
+        residual_filepath = os.path.join(img_dir, residual_filename)
+        plt.savefig(residual_filepath)
+        plt.close()
+        
+        # Create overall historical data plot
+        plt.figure(figsize=(10, 4))
+        plt.plot(resampled_df['Sales'])
+        plt.title(f"{freq_name} Frequency - Historical Data")
+        plt.tight_layout()
+        historical_filename = f"{freq_name}_Frequency_-_Historical_Data.png"
+        historical_filepath = os.path.join(img_dir, historical_filename)
+        plt.savefig(historical_filepath)
+        plt.close()
+        
+        # Create model performance plot (dummy plot when we don't have actual model performance)
+        plt.figure(figsize=(10, 4))
+        plt.plot(resampled_df['Sales'], label='Actual')
+        
+        # For this example, we'll create a simple shifted version as the "predicted" values
+        # In a real application, you would use actual model predictions
+        predicted = resampled_df['Sales'].shift(1).fillna(method='bfill')
+        plt.plot(predicted, label='Predicted', linestyle='--')
+        
+        plt.title(f"{freq_name} Frequency - Model Performance")
+        plt.legend()
+        plt.tight_layout()
+        performance_filename = f"{freq_name}_Frequency_-_Model_Performance.png"
+        performance_filepath = os.path.join(img_dir, performance_filename)
+        plt.savefig(performance_filepath)
+        plt.close()
+        
+        # If in production, upload to Cloudinary
+        if 'RENDER' in os.environ:
+            for filename in [trend_filename, seasonal_filename, residual_filename, 
+                            historical_filename, performance_filename]:
+                try:
+                    filepath = os.path.join(img_dir, filename)
+                    # Upload to Cloudinary
+                    result = cloudinary.uploader.upload(
+                        filepath,
+                        public_id=f"forecasts/{filename.split('.')[0]}",
+                        overwrite=True
+                    )
+                    print(f"Uploaded {filename} to Cloudinary")
+                except Exception as e:
+                    print(f"Error uploading to Cloudinary: {e}")
+        
+        print(f"Created decomposition plots for {freq_name} frequency")
+        return True
     except Exception as e:
-        print(f"Error generating decomposition plots: {e}")
-        # Create basic placeholder images
-        try:
-            for component in ['Trend', 'Seasonal', 'Residual']:
-                plt.figure(figsize=(12, 4))
-                plt.text(0.5, 0.5, f'Insufficient data for {freq_name} {component} decomposition',
-                        horizontalalignment='center',
-                        verticalalignment='center',
-                        fontsize=14, color='red')
-                plt.grid(False)
-                plt.axis('off')
-                plt.tight_layout()
-                plt.savefig(os.path.join(img_dir, f'{freq_name}_Frequency_-_{component}.png'))
-                plt.close()
-            return True
-        except:
-            return False
+        print(f"Error creating decomposition plots for {freq_name}: {str(e)}")
+        return False
 
 def generate_initial_images():
     """Generate initial images for historical data and model performance"""

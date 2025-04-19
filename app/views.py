@@ -1337,99 +1337,31 @@ def area_manager_loan_details(request, loan_id):
 @login_required
 @role_required(['AREA'])
 def area_manager_forecasting(request):
-    """Forecasting page for Area Manager"""
+    """View to display forecasting data for Area Manager"""
+    import os
     
-    # Check if models exist
-    models_dir = 'app/ml_models'
-    if not os.path.exists(models_dir):
-        messages.error(request, "Model directory not found. Please train models first.")
-        return redirect('area_manager_dashboard')
+    # Check if initial forecast images exist, if not generate them
+    from .forecasting import generate_initial_images
+    generate_initial_images()
     
-    # Check if all required model files exist
-    frequencies = {
-        'W': {
-            'name': 'Weekly',
-            'steps_options': [4, 8, 12, 16],
-            'default_steps': 12,
-            'files': ['lstm_w_model.keras', 'scaler_w.pkl', 'config_w.txt']
-        },
-        'M': {
-            'name': 'Monthly',
-            'steps_options': [3, 6, 9, 12],
-            'default_steps': 6,
-            'files': ['lstm_m_model.keras', 'scaler_m.pkl', 'config_m.txt']
-        },
-        'Q': {
-            'name': 'Quarterly',
-            'steps_options': [2, 4, 8, 12],
-            'default_steps': 4,
-            'files': ['lstm_q_model.keras', 'scaler_q.pkl', 'config_q.txt']
-        }
-    }
+    # Get statistics from database models
+    from .models import DailyLoanDisbursement, WeeklyLoanDisbursement, MonthlyLoanDisbursement, YearlyLoanDisbursement
     
-    # Check if all model files exist
-    for freq, config in frequencies.items():
-        for file in config['files']:
-            if not os.path.exists(os.path.join(models_dir, file)):
-                messages.warning(request, f"Missing model file: {file} for {config['name']} forecasting.")
+    # Get most recent statistics
+    daily_stats = DailyLoanDisbursement.objects.order_by('-date')[:30]
+    weekly_stats = WeeklyLoanDisbursement.objects.order_by('-year', '-month', '-week')[:12]
+    monthly_stats = MonthlyLoanDisbursement.objects.order_by('-year', '-month')[:12]
+    yearly_stats = YearlyLoanDisbursement.objects.order_by('-year')[:5]
     
-    # Define the static image directory
-    img_dir = 'static/img'
-    
-    # Ensure the static/img directory exists
-    os.makedirs(img_dir, exist_ok=True)
-    
-    # Define all required images
-    required_images = [
-        f"{freq_name}_Frequency_-_Historical_Data.png" 
-        for freq_name in ['Weekly', 'Monthly', 'Quarterly']
-    ] + [
-        f"{freq_name}_Frequency_-_Model_Performance.png" 
-        for freq_name in ['Weekly', 'Monthly', 'Quarterly']
-    ] + ['no_image.png']
-    
-    # Check if any required images are missing
-    missing_images = []
-    for img in required_images:
-        img_path = os.path.join(img_dir, img)
-        if not os.path.exists(img_path):
-            missing_images.append(img)
-    
-    # Generate missing images if needed
-    if missing_images:
-        print(f"Missing images: {missing_images}")
-        try:
-            # Try to generate initial images
-            from .forecasting import generate_initial_images
-            success = generate_initial_images()
-            
-            if success:
-                messages.success(request, "Generated forecasting visualizations successfully.")
-            else:
-                messages.warning(request, "Could not generate all forecasting visualizations. Using placeholder images.")
-                
-                # If still missing any required images, use create_placeholder_images command
-                still_missing = []
-                for img in required_images:
-                    if not os.path.exists(os.path.join(img_dir, img)):
-                        still_missing.append(img)
-                
-                if still_missing:
-                    print(f"Still missing after generate_initial_images: {still_missing}")
-                    # Create placeholder images for the missing ones
-                    from django.core.management import call_command
-                    call_command('create_placeholder_images')
-        except Exception as e:
-            messages.error(request, f"Error generating images: {str(e)}")
-            # Create placeholder images as fallback
-            try:
-                from django.core.management import call_command
-                call_command('create_placeholder_images')
-            except:
-                pass
+    # Check if we're in production (Render)
+    in_production = 'RENDER' in os.environ
     
     context = {
-        'frequencies': frequencies
+        'daily_stats': daily_stats,
+        'weekly_stats': weekly_stats,
+        'monthly_stats': monthly_stats,
+        'yearly_stats': yearly_stats,
+        'in_production': in_production,
     }
     
     return render(request, 'app/area_manager/forecasting.html', context)
