@@ -692,10 +692,28 @@ def generate_initial_images():
                     plt.ylabel('Loan Amount')
                     plt.grid(True)
                     plt.tight_layout()
-                    historical_path = os.path.join('static/img', f"{freq_name}_Frequency_-_Historical_Data.png")
+                    historical_filename = f"{freq_name}_Frequency_-_Historical_Data.png"
+                    historical_path = os.path.join('static/img', historical_filename)
                     plt.savefig(historical_path)
                     plt.close()
                     print(f"Generated historical data image: {historical_path}")
+                    
+                    # Upload historical data image to Cloudinary in production
+                    if 'RENDER' in os.environ:
+                        try:
+                            # Initialize Cloudinary
+                            if init_cloudinary():
+                                # Upload to Cloudinary
+                                result = cloudinary.uploader.upload(
+                                    historical_path,
+                                    public_id=f"forecasts/{historical_filename.split('.')[0]}",
+                                    overwrite=True
+                                )
+                                print(f"Uploaded historical data image to Cloudinary: {historical_filename}")
+                            else:
+                                print(f"Cloudinary not initialized, skipping upload for {historical_filename}")
+                        except Exception as e:
+                            print(f"Error uploading historical data to Cloudinary: {e}")
                     
                     # Create placeholder images
                     print(f"Creating placeholder images for {freq_name}")
@@ -765,6 +783,7 @@ def generate_initial_images():
             # Create placeholder images for all frequencies
             for _, freq_name in [('W', 'Weekly'), ('M', 'Monthly'), ('Q', 'Quarterly')]:
                 create_fallback_images(freq_name)
+                create_fallback_forecast(freq_name)
             
             return False
             
@@ -774,6 +793,7 @@ def generate_initial_images():
         # Create basic placeholder images as fallback
         for _, freq_name in [('W', 'Weekly'), ('M', 'Monthly'), ('Q', 'Quarterly')]:
             create_fallback_images(freq_name)
+            create_fallback_forecast(freq_name)
         
         return False
 
@@ -849,7 +869,9 @@ def create_fallback_forecast(freq_name):
                 horizontalalignment='center', verticalalignment='center',
                 transform=plt.gca().transAxes, fontsize=14)
         plt.axis('off')
-        forecast_path = f"static/img/{freq_name.lower()}_sales_forecast.png"
+        # Fix the filename to match what the template expects
+        forecast_filename = f"{freq_name.lower()}_sales_forecast.png"
+        forecast_path = os.path.join('static/img', forecast_filename)
         plt.savefig(forecast_path)
         plt.close()
         print(f"Created placeholder forecast image: {forecast_path}")
@@ -861,10 +883,10 @@ def create_fallback_forecast(freq_name):
                 try:
                     result = cloudinary.uploader.upload(
                         forecast_path,
-                        public_id=f"forecasts/{freq_name.lower()}_sales_forecast",
+                        public_id=f"forecasts/{forecast_filename.split('.')[0]}",  # Remove the _forecast suffix
                         overwrite=True
                     )
-                    print(f"Uploaded placeholder forecast to Cloudinary: {freq_name.lower()}_sales_forecast")
+                    print(f"Uploaded placeholder forecast to Cloudinary: {forecast_filename}")
                 except Exception as e:
                     print(f"Error uploading forecast to Cloudinary: {e}")
             else:
