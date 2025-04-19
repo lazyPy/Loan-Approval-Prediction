@@ -28,6 +28,23 @@ from django.conf import settings
 np.random.seed(42)
 random.seed(42)
 
+# Initialize Cloudinary from Django settings
+def init_cloudinary():
+    """Initialize Cloudinary with credentials from Django settings"""
+    try:
+        if 'RENDER' in os.environ and hasattr(settings, 'CLOUDINARY_STORAGE'):
+            cloudinary.config(
+                cloud_name=settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', ''),
+                api_key=settings.CLOUDINARY_STORAGE.get('API_KEY', ''),
+                api_secret=settings.CLOUDINARY_STORAGE.get('API_SECRET', ''),
+                secure=True
+            )
+            return True
+        return False
+    except Exception as e:
+        print(f"Error initializing Cloudinary: {e}")
+        return False
+
 def get_recent_completed_loans():
     """Get recent completed loans data for forecasting"""
     completed_loans = Borrower.objects.filter(
@@ -340,13 +357,17 @@ def plot_forecast(historical_data, forecast_data, title='Historical Data and For
     # If in production, upload to Cloudinary
     if 'RENDER' in os.environ:
         try:
-            # Upload to Cloudinary
-            result = cloudinary.uploader.upload(
-                filepath,
-                public_id=f"forecasts/{filename.split('.')[0]}",
-                overwrite=True
-            )
-            print(f"Uploaded {filename} to Cloudinary")
+            # Initialize Cloudinary
+            if init_cloudinary():
+                # Upload to Cloudinary
+                result = cloudinary.uploader.upload(
+                    filepath,
+                    public_id=f"forecasts/{filename.split('.')[0]}",
+                    overwrite=True
+                )
+                print(f"Uploaded {filename} to Cloudinary")
+            else:
+                print(f"Cloudinary not initialized, skipping upload for {filename}")
         except Exception as e:
             print(f"Error uploading to Cloudinary: {e}")
     
@@ -600,19 +621,23 @@ def plot_decomposition(resampled_df, freq_name, img_dir='static/img'):
         
         # If in production, upload to Cloudinary
         if 'RENDER' in os.environ:
-            for filename in [trend_filename, seasonal_filename, residual_filename, 
-                            historical_filename, performance_filename]:
-                try:
-                    filepath = os.path.join(img_dir, filename)
-                    # Upload to Cloudinary
-                    result = cloudinary.uploader.upload(
-                        filepath,
-                        public_id=f"forecasts/{filename.split('.')[0]}",
-                        overwrite=True
-                    )
-                    print(f"Uploaded {filename} to Cloudinary")
-                except Exception as e:
-                    print(f"Error uploading to Cloudinary: {e}")
+            # Initialize Cloudinary
+            if init_cloudinary():
+                for filename in [trend_filename, seasonal_filename, residual_filename, 
+                                historical_filename, performance_filename]:
+                    try:
+                        filepath = os.path.join(img_dir, filename)
+                        # Upload to Cloudinary
+                        result = cloudinary.uploader.upload(
+                            filepath,
+                            public_id=f"forecasts/{filename.split('.')[0]}",
+                            overwrite=True
+                        )
+                        print(f"Uploaded {filename} to Cloudinary")
+                    except Exception as e:
+                        print(f"Error uploading to Cloudinary: {e}")
+            else:
+                print("Cloudinary not initialized, skipping uploads")
         
         print(f"Created decomposition plots for {freq_name} frequency")
         return True
@@ -794,18 +819,22 @@ def create_fallback_images(freq_name):
         
         # If in production, upload to Cloudinary
         if 'RENDER' in os.environ:
-            for component in ['Trend', 'Seasonal', 'Residual', 'Model_Performance']:
-                filename = f"{freq_name}_Frequency_-_{component}.png"
-                filepath = os.path.join('static/img', filename)
-                try:
-                    result = cloudinary.uploader.upload(
-                        filepath,
-                        public_id=f"forecasts/{filename.split('.')[0]}",
-                        overwrite=True
-                    )
-                    print(f"Uploaded placeholder {component} to Cloudinary: {filename}")
-                except Exception as e:
-                    print(f"Error uploading placeholder to Cloudinary: {e}")
+            # Initialize Cloudinary
+            if init_cloudinary():
+                for component in ['Trend', 'Seasonal', 'Residual', 'Model_Performance']:
+                    filename = f"{freq_name}_Frequency_-_{component}.png"
+                    filepath = os.path.join('static/img', filename)
+                    try:
+                        result = cloudinary.uploader.upload(
+                            filepath,
+                            public_id=f"forecasts/{filename.split('.')[0]}",
+                            overwrite=True
+                        )
+                        print(f"Uploaded placeholder {component} to Cloudinary: {filename}")
+                    except Exception as e:
+                        print(f"Error uploading placeholder to Cloudinary: {e}")
+            else:
+                print("Cloudinary not initialized, skipping uploads")
         
         return True
     except Exception as e:
@@ -827,15 +856,19 @@ def create_fallback_forecast(freq_name):
         
         # If in production, upload to Cloudinary
         if 'RENDER' in os.environ:
-            try:
-                result = cloudinary.uploader.upload(
-                    forecast_path,
-                    public_id=f"forecasts/{freq_name.lower()}_sales_forecast",
-                    overwrite=True
-                )
-                print(f"Uploaded placeholder forecast to Cloudinary: {freq_name.lower()}_sales_forecast")
-            except Exception as e:
-                print(f"Error uploading forecast to Cloudinary: {e}")
+            # Initialize Cloudinary
+            if init_cloudinary():
+                try:
+                    result = cloudinary.uploader.upload(
+                        forecast_path,
+                        public_id=f"forecasts/{freq_name.lower()}_sales_forecast",
+                        overwrite=True
+                    )
+                    print(f"Uploaded placeholder forecast to Cloudinary: {freq_name.lower()}_sales_forecast")
+                except Exception as e:
+                    print(f"Error uploading forecast to Cloudinary: {e}")
+            else:
+                print(f"Cloudinary not initialized, skipping upload for {forecast_path}")
         
         return True
     except Exception as e:
