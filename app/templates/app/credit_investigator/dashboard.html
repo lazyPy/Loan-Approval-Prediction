@@ -15,7 +15,6 @@
                     <table class="table table-striped table-hover" id="activeLoansTable">
                         <thead>
                             <tr>
-                                <th>Loan ID</th>
                                 <th>Reference Number</th>
                                 <th>Applicant Name</th>
                                 <th>Date Applied</th>
@@ -28,7 +27,6 @@
                             {% for loan in loans %}
                                 {% if loan.status.status == 'PROCEED_CI' %}
                                     <tr>
-                                        <td>{{ loan.loan_id }}</td>
                                         <td>{{ loan.reference_number }}</td>
                                         <td>
                                             {% if loan.personal_info %}
@@ -72,7 +70,6 @@
                     <table class="table table-striped table-hover" id="historyLoansTable">
                         <thead>
                             <tr>
-                                <th>Loan ID</th>
                                 <th>Reference Number</th>
                                 <th>Applicant Name</th>
                                 <th>Date Applied</th>
@@ -85,7 +82,6 @@
                             {% for loan in loans %}
                                 {% if loan.credit_investigator_remarks %}
                                     <tr>
-                                        <td>{{ loan.loan_id }}</td>
                                         <td>{{ loan.reference_number }}</td>
                                         <td>
                                             {% if loan.personal_info %}

@@ -241,6 +241,7 @@ class LoanDetails(models.Model):
     estimated_vehicle_value = models.DecimalField(max_digits=12, decimal_places=2)
     down_payment_percentage = models.DecimalField(max_digits=4, decimal_places=2, choices=DOWN_PAYMENT_CHOICES)
     loan_amount_term = models.IntegerField(choices=LOAN_TERM_CHOICES)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2)
     loan_purpose = models.CharField(max_length=20, choices=LOAN_PURPOSE_CHOICES)
     loan_amount_applied = models.DecimalField(max_digits=12, decimal_places=2)
     monthly_amortization = models.DecimalField(max_digits=12, decimal_places=2)
@@ -252,9 +253,10 @@ class LoanDetails(models.Model):
             down_payment_pct = Decimal(str(self.down_payment_percentage))
             loan_term = Decimal(str(self.loan_amount_term))
             
-            # Get the current active interest rate
-            from .models import InterestRate
-            interest_rate = InterestRate.get_active_rate()
+            # If this is a new loan (no pk), get the current interest rate
+            if not self.pk:
+                from .models import InterestRate
+                self.interest_rate = InterestRate.get_active_rate()
             
             # Calculate loan amount applied (Principal)
             down_payment_amount = estimated_value * down_payment_pct
@@ -262,7 +264,7 @@ class LoanDetails(models.Model):
             
             # Calculate monthly amortization using the formula:
             # (((Loan Amount × Interest Rate) × Loan Term) + Loan Amount) / Loan Term
-            annual_interest_rate = Decimal(str(interest_rate)) / Decimal('100')
+            annual_interest_rate = Decimal(str(self.interest_rate)) / Decimal('100')
             total_interest = (self.loan_amount_applied * annual_interest_rate * loan_term)
             total_amount = total_interest + self.loan_amount_applied
             self.monthly_amortization = total_amount / loan_term
@@ -548,10 +550,18 @@ class LoanApprovalOfficerRemarks(models.Model):
         ('DECLINED', 'Declined')
     ]
     
+    PREDICTION_CHOICES = [
+        ('APPROVED', 'Approved'),
+        ('DECLINED', 'Declined'),
+        ('', 'Not Predicted')
+    ]
+    
     loan = models.OneToOneField(Borrower, on_delete=models.CASCADE, related_name='loan_approval_officer_remarks')
     loan_approval_officer_name = models.CharField(max_length=100)
-    approval_status = models.CharField(max_length=10, choices=APPROVAL_CHOICES, blank=True, null=True)
+    approval_status = models.CharField(max_length=10, choices=APPROVAL_CHOICES, blank=True)
     remarks = models.TextField()
+    prediction_result = models.CharField(max_length=10, choices=PREDICTION_CHOICES, blank=True)
+    prediction_probability = models.DecimalField(max_digits=5, decimal_places=2, blank=True, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

@@ -413,9 +413,53 @@ def load_saved_model(freq, models_dir='app/ml_models'):
         print(f"Error loading model: {e}")
         return None, None, None, None
 
-def train_and_save_models(file_path='Sales_Data.csv', models_dir='app/ml_models'):
+def get_combined_loan_data():
+    """Combine historical data from Sales_Data.csv with recent completed loans"""
+    try:
+        # Load historical data
+        historical_df = pd.read_csv('app/ml_models/Sales_Data.csv')
+        historical_df['Date'] = pd.to_datetime(historical_df['Date'])
+        # Convert Sales column to numeric, removing any currency formatting
+        historical_df['Sales'] = historical_df['Sales'].astype(str).str.replace(',', '').astype(float)
+        historical_df.set_index('Date', inplace=True)
+        
+        # Get recent completed loans
+        recent_df = get_recent_completed_loans()
+        
+        # Combine the datasets
+        if len(recent_df) > 0:
+            # Find the last date in historical data
+            last_historical_date = historical_df.index.max()
+            
+            # Only use recent loans that are after the last historical date
+            recent_df = recent_df[recent_df.index > last_historical_date]
+            
+            if len(recent_df) > 0:
+                # Concatenate the datasets
+                combined_df = pd.concat([historical_df, recent_df])
+                
+                # Sort by date
+                combined_df.sort_index(inplace=True)
+                
+                # Remove any duplicates
+                combined_df = combined_df[~combined_df.index.duplicated(keep='last')]
+                
+                print(f"Combined data: {len(combined_df)} records from {combined_df.index.min()} to {combined_df.index.max()}")
+                return combined_df
+        
+        print(f"Using historical data: {len(historical_df)} records from {historical_df.index.min()} to {historical_df.index.max()}")
+        return historical_df
+        
+    except Exception as e:
+        print(f"Error combining data: {e}")
+        print("Falling back to recent loans only")
+        return get_recent_completed_loans()
+
+def train_and_save_models(models_dir='app/ml_models'):
     os.makedirs('static/img', exist_ok=True)
-    df = get_recent_completed_loans()
+    
+    # Use combined historical and recent data
+    df = get_combined_loan_data()
     results = {}
     
     frequencies = {
@@ -515,17 +559,17 @@ def train_and_save_models(file_path='Sales_Data.csv', models_dir='app/ml_models'
     return results
 
 def make_new_forecast(freq, steps):
-    """Generate a new forecast based on recent completed loans"""
+    """Generate a new forecast based on combined historical and recent data"""
     try:
         # Load the saved model and associated files
         model, scaler, seq_length, features = load_saved_model(freq)
         if model is None:
             return None, "Failed to load model"
         
-        # Get recent completed loans data
-        df = get_recent_completed_loans()
+        # Get combined historical and recent data
+        df = get_combined_loan_data()
         if len(df) == 0:
-            return None, "No completed loans data available"
+            return None, "No data available for forecasting"
         
         # Resample data to specified frequency
         resampled_df = resample_data(df, freq)
@@ -550,7 +594,7 @@ def make_new_forecast(freq, steps):
         
         # Plot the forecast
         title = f"{freq} Frequency - Forecast"
-        image_path = plot_forecast(resampled_df, forecast_df, title)
+        image_path = plot_forecast(resampled_df['Sales'].values, forecast_df['Forecast'].values, title)
         
         return forecast_df, image_path
     except Exception as e:
@@ -719,7 +763,7 @@ def create_no_image_placeholder():
         return False
 
 def generate_initial_images():
-    """Generate initial forecast images for all frequencies"""
+    """Generate initial forecast images using combined historical and recent data"""
     try:
         # Create the static/img directory if it doesn't exist
         os.makedirs('static/img', exist_ok=True)
@@ -727,8 +771,8 @@ def generate_initial_images():
         # Create a no_image placeholder
         create_no_image_placeholder()
         
-        # Try to get real data first
-        df = get_recent_completed_loans()
+        # Get combined historical and recent data
+        df = get_combined_loan_data()
         
         # If we have data, process it
         if len(df) > 0:

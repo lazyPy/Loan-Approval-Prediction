@@ -251,13 +251,6 @@ def loan_application_step(request, step=1):
             form = form_class(initial=saved_data)
         else:
             form_class = FORMS[step]['form']
-            # If this is the loan details step, set the initial interest rate
-            if step == 9:  # Loan Details step
-                from .models import InterestRate
-                current_rate = InterestRate.get_active_rate()
-                form = form_class(initial={'interest_rate': current_rate})
-            else:
-                form = form_class()
     
     context = {
         'form': form,
@@ -299,14 +292,9 @@ def loan_application_step(request, step=1):
 def loan_status(request, reference_number):
     try:
         loan = Borrower.objects.get(reference_number=reference_number)
-        
-        # Get the current interest rate from the InterestRate model
-        from .models import InterestRate
-        current_interest_rate = InterestRate.get_active_rate()
-        
+
         return render(request, 'app/loan_status.html', {
-            'loan': loan,
-            'current_interest_rate': current_interest_rate
+            'loan': loan
         })
     except Borrower.DoesNotExist:
         messages.error(request, 'No loan application found with this reference number.')
@@ -361,12 +349,10 @@ def loan_details_view(request, loan_id):
     loan_amortization = None
     if hasattr(loan, 'loan_details'):
         loan_details = loan.loan_details
-        # Get the current interest rate from the InterestRate model
-        current_interest_rate = InterestRate.get_active_rate()
         
         loan_amortization = {
             'loan_amount': loan_details.loan_amount_applied,
-            'interest_rate': current_interest_rate,
+            'interest_rate': loan_details.interest_rate,
             'term_months': loan_details.loan_amount_term,
             'monthly_payment': loan_details.monthly_amortization,
             'total_payment': loan_details.monthly_amortization * loan_details.loan_amount_term,
@@ -460,11 +446,10 @@ def credit_investigator_loan_details(request, loan_id):
     loan_amortization = None
     if hasattr(loan, 'loan_details'):
         loan_details = loan.loan_details
-        current_interest_rate = InterestRate.get_active_rate()
         
         loan_amortization = {
             'loan_amount': loan_details.loan_amount_applied,
-            'interest_rate': current_interest_rate,
+            'interest_rate': loan_details.interest_rate,
             'term_months': loan_details.loan_amount_term,
             'monthly_payment': loan_details.monthly_amortization,
             'total_payment': loan_details.monthly_amortization * loan_details.loan_amount_term,
@@ -646,21 +631,20 @@ def quick_loan_prediction(request, loan_id):
             
             # Save the prediction to the database
             from .models import LoanApprovalOfficerRemarks, LoanStatus
+            from decimal import Decimal
             
-            # Convert prediction result to model choice
-            if prediction_result == 'Approved':
-                approval_status = 'APPROVED'
-            elif prediction_result == 'Declined':
-                approval_status = 'DECLINED'
-            else:
-                approval_status = None
+            # Map prediction result to model choice
+            model_prediction = 'APPROVED' if prediction_result == 'Approved' else 'DECLINED'
             
             # Create or update the LoanApprovalOfficerRemarks
+            user_name = f"{request.user.first_name} {request.user.last_name}" or request.user.username
             remarks_obj, created = LoanApprovalOfficerRemarks.objects.update_or_create(
                 loan=loan,
                 defaults={
-                    'approval_status': approval_status,
-                    'remarks': ''
+                    'loan_approval_officer_name': user_name,
+                    'remarks': f'AI Prediction: {prediction_result} with {prediction_probability:.2f} confidence',
+                    'prediction_result': model_prediction,
+                    'prediction_probability': Decimal(str(round(prediction_probability * 100, 2)))
                 }
             )
             
@@ -709,12 +693,10 @@ def loan_approval_officer_loan_details(request, loan_id):
     loan_amortization = None
     if hasattr(loan, 'loan_details'):
         loan_details = loan.loan_details
-        # Get the current interest rate from the InterestRate model
-        current_interest_rate = InterestRate.get_active_rate()
 
         loan_amortization = {
             'loan_amount': loan_details.loan_amount_applied,
-            'interest_rate': current_interest_rate,
+            'interest_rate': loan_details.interest_rate,
             'term_months': loan_details.loan_amount_term,
             'monthly_payment': loan_details.monthly_amortization,
             'total_payment': loan_details.monthly_amortization * loan_details.loan_amount_term,
@@ -729,20 +711,19 @@ def loan_approval_officer_loan_details(request, loan_id):
         if monthly_income > 0:
             dti_ratio = (monthly_payment / monthly_income) * 100
     
-    # Check if we have a saved prediction in the remarks
+    # Get prediction information
     prediction_result = None
     prediction_probability = None
     
-    # Get prediction from existing remarks or make new prediction
-    if remarks:
+    if remarks and remarks.prediction_result:
         # Use saved prediction from remarks
-        prediction_result = ('Approved' if remarks.approval_status == 'APPROVED' 
-                           else 'Declined' if remarks.approval_status == 'DECLINED'
-                           else None)
-        
-        # Extract probability from remarks if available
-        probability_match = re.search(r'with ([\d.]+) confidence', remarks.remarks or '')
-        prediction_probability = float(probability_match.group(1)) * 100 if probability_match else 0.0
+        if remarks.prediction_result == 'APPROVED':
+            prediction_result = 'Approved'
+        elif remarks.prediction_result == 'DECLINED':
+            prediction_result = 'Declined'
+            
+        # Use saved probability
+        prediction_probability = remarks.prediction_probability
     
     context = {
         'loan': loan,
@@ -796,12 +777,10 @@ def loan_disbursement_officer_loan_details(request, loan_id):
     loan_amortization = None
     if hasattr(loan, 'loan_details'):
         loan_details = loan.loan_details
-        # Get the current interest rate from the InterestRate model
-        current_interest_rate = InterestRate.get_active_rate()
  
         loan_amortization = {
             'loan_amount': loan_details.loan_amount_applied,
-            'interest_rate': current_interest_rate,
+            'interest_rate': loan_details.interest_rate,
             'term_months': loan_details.loan_amount_term,
             'monthly_payment': loan_details.monthly_amortization,
             'total_payment': loan_details.monthly_amortization * loan_details.loan_amount_term,
@@ -1312,10 +1291,6 @@ def area_manager_loan_details(request, loan_id):
             status_percentage = 90
         elif loan.status.status == 'COMPLETED':
             status_percentage = 100
-            
-        # Get the current interest rate from the InterestRate model
-        from .models import InterestRate
-        current_interest_rate = InterestRate.get_active_rate()
                 
         # Calculate loan amortization schedule
         loan_amortization = {}
@@ -1324,8 +1299,7 @@ def area_manager_loan_details(request, loan_id):
             'loan': loan,
             'dti_ratio': dti_ratio,
             'status_percentage': status_percentage,
-            'loan_amortization': loan_amortization,
-            'current_interest_rate': current_interest_rate
+            'loan_amortization': loan_amortization
         }
         
         return render(request, 'app/area_manager/loan_details.html', context)
@@ -1958,11 +1932,11 @@ def loan_computation(request):
     """
     Display the loan computation calculator page.
     """
-    from .models import InterestRate
-    current_rate = InterestRate.get_active_rate()
-    
     # Create a form instance
     form = LoanDetailsForm()
+
+    from .models import InterestRate
+    current_rate = InterestRate.get_active_rate()
     
     return render(request, 'app/loan_computation.html', {
         'form': form,

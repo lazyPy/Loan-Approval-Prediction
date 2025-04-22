@@ -93,20 +93,77 @@
 
 {% block extra_js %}
 <script>
+    // Simple comma formatting for currency fields
+    function formatWithCommas(input) {
+        if (!input) return;
+        
+        // Convert to text type for comma formatting
+        input.setAttribute('type', 'text');
+        
+        input.addEventListener('input', function() {
+            // Get cursor position and clean input value
+            const pos = this.selectionStart;
+            const rawValue = this.value.replace(/,/g, '').replace(/[^\d]/g, '');
+            
+            // Add commas using regex
+            if (rawValue) {
+                const formatted = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                
+                if (this.value !== formatted) {
+                    const diff = formatted.length - this.value.length;
+                    this.value = formatted;
+                    this.setSelectionRange(pos + diff, pos + diff);
+                }
+            }
+            
+            // Create hidden input with numeric value
+            const name = this.name;
+            if (!this.dataset.hasHidden) {
+                this.name = name + '_display';
+                this.dataset.hasHidden = 'true';
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = name;
+                hidden.value = rawValue;
+                this.after(hidden);
+            } else {
+                this.nextElementSibling.value = rawValue;
+            }
+            
+            // Trigger calculation
+            calculateLoanDetails();
+        });
+    }
+
+    // Format read-only field with commas
+    function formatReadonlyWithCommas(input) {
+        if (!input) return;
+        input.setAttribute('type', 'text');
+    }
+
     // Calculate loan details
     function calculateLoanDetails() {
-        const vehicleValue = parseFloat(document.getElementById('{{ form.estimated_vehicle_value.id_for_label }}').value) || 0;
+        // Get the vehicle value, removing commas first
+        const vehicleValueField = document.getElementById('{{ form.estimated_vehicle_value.id_for_label }}');
+        const vehicleValue = parseFloat(vehicleValueField.value.replace(/,/g, '')) || 0;
+        
         const downPaymentPercentage = parseFloat(document.getElementById('{{ form.down_payment_percentage.id_for_label }}').value) || 0;
         const loanTerm = parseInt(document.getElementById('{{ form.loan_amount_term.id_for_label }}').value) || 0;
         const interestRate = parseFloat(document.getElementById('interest_rate').value) || 0;
 
         // Calculate down payment amount
         const downPaymentAmount = vehicleValue * downPaymentPercentage;
-        document.getElementById('down_payment_amount').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(downPaymentAmount);
+        document.getElementById('down_payment_amount').value = downPaymentAmount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
 
         // Calculate loan amount applied (Principal)
         const loanAmountApplied = vehicleValue - downPaymentAmount;
-        document.getElementById('loan_amount_applied').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(loanAmountApplied);
+        document.getElementById('loan_amount_applied').value = loanAmountApplied.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
 
         // Calculate monthly amortization using the formula:
         // (((Loan Amount × Interest Rate) × Loan Term) + Loan Amount) / Loan Term
@@ -120,8 +177,14 @@
             monthlyAmortization = totalAmount / loanTerm;  // Divide by loan term to get monthly payment
         }
 
-        document.getElementById('monthly_amortization').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(monthlyAmortization);
-        document.getElementById('total_amount_payable').value = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalAmount);
+        document.getElementById('monthly_amortization').value = monthlyAmortization.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('total_amount_payable').value = totalAmount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 
     // Add event listeners to form fields
@@ -134,10 +197,26 @@
     fields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
-            field.addEventListener('input', calculateLoanDetails);
+            // Only apply comma formatting to the estimated vehicle value field
+            if (fieldId === '{{ form.estimated_vehicle_value.id_for_label }}') {
+                formatWithCommas(field);
+            } else {
+                field.addEventListener('input', function() {
+                    if (this.value < 0) {
+                        this.value = 0;
+                    }
+                    calculateLoanDetails();
+                });
+            }
         }
     });
 
+    // Format read-only fields
+    formatReadonlyWithCommas(document.getElementById('down_payment_amount'));
+    formatReadonlyWithCommas(document.getElementById('loan_amount_applied'));
+    formatReadonlyWithCommas(document.getElementById('monthly_amortization'));
+    formatReadonlyWithCommas(document.getElementById('total_amount_payable'));
+    
     // Set initial values
     calculateLoanDetails();
 </script>

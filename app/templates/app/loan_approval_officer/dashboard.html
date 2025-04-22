@@ -16,7 +16,6 @@
                     <table class="table table-striped table-hover" id="activeLoansTable">
                         <thead>
                             <tr>
-                                <th>Loan ID</th>
                                 <th>Reference Number</th>
                                 <th>Applicant Name</th>
                                 <th>Date Applied</th>
@@ -24,14 +23,13 @@
                                 <th>Loan Amount</th>
                                 <th>Status</th>
                                 <th>Actions</th>
-                                <th>AI Prediction</th>
+                                <th>Prediction</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for loan in loans %}
                                 {% if loan.status.status == 'PROCEED_LAO' %}
                                     <tr>
-                                        <td>{{ loan.loan_id }}</td>
                                         <td>{{ loan.reference_number }}</td>
                                         <td>
                                             {% if loan.personal_info %}
@@ -65,12 +63,25 @@
                                             <span class="badge bg-primary">{{ loan.status.get_status_display }}</span>
                                         </td>
                                         <td>
-                                            <a href="{% url 'loan_approval_officer_loan_details' loan.loan_id %}" class="btn btn-primary btn-sm">Review</a>
+                                            {% if loan.loan_approval_officer_remarks.prediction_result %}
+                                                <a href="{% url 'loan_approval_officer_loan_details' loan.loan_id %}" class="btn btn-primary btn-sm">Review</a>
+                                            {% else %}
+                                                <button class="btn btn-info btn-sm predict-btn" data-loan-id="{{ loan.loan_id }}">
+                                                    <i class="fas fa-robot"></i> Predict
+                                                </button>
+                                            {% endif %}
                                         </td>
                                         <td>
-                                            <button class="btn btn-info btn-sm predict-btn" data-loan-id="{{ loan.loan_id }}">
-                                                <i class="fas fa-robot"></i> Predict
-                                            </button>
+                                            {% if loan.loan_approval_officer_remarks.prediction_result %}
+                                                <span class="badge {% if loan.loan_approval_officer_remarks.prediction_result == 'APPROVED' %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {{ loan.loan_approval_officer_remarks.get_prediction_result_display }}
+                                                    {% if loan.loan_approval_officer_remarks.prediction_probability %}
+                                                        | {{ loan.loan_approval_officer_remarks.prediction_probability }}%
+                                                    {% endif %}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Predicted</span>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endif %}
@@ -97,7 +108,6 @@
                     <table class="table table-striped table-hover" id="historyLoansTable">
                         <thead>
                             <tr>
-                                <th>Loan ID</th>
                                 <th>Reference Number</th>
                                 <th>Applicant Name</th>
                                 <th>Date Applied</th>
@@ -112,7 +122,6 @@
                             {% for loan in loans %}
                                 {% if loan.loan_approval_officer_remarks %}
                                     <tr>
-                                        <td>{{ loan.loan_id }}</td>
                                         <td>{{ loan.reference_number }}</td>
                                         <td>
                                             {% if loan.personal_info %}
@@ -174,47 +183,58 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-    // Add click event for prediction buttons
-    $('.predict-btn').on('click', function() {
-        const loanId = $(this).data('loan-id');
-        const predictBtn = $(this);
+    $(document).ready(function() {
+        const predictionUrl = "{% url 'quick_loan_prediction' 0 %}";
+        const reviewBaseUrl = "{% url 'loan_approval_officer_loan_details' 0 %}";
         
-        // Store original button content
-        const originalContent = predictBtn.html();
-        
-        // Show loading animation in the button with "Predicting..." text
-        predictBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Predicting...');
-        predictBtn.prop('disabled', true);
-        
-        // Make AJAX request to get prediction
-        $.ajax({
-            url: `/loan-approval-officer/predict/${loanId}/`,
-            method: 'GET',
-            success: function(response) {
-                // Get the prediction result
-                const prediction = response.prediction;
-                
-                // Create a badge to replace the button
-                const badgeClass = prediction === 'Approved' ? 'bg-success' : 'bg-danger';
-                const resultBadge = $(`<span class="badge ${badgeClass}">${prediction}</span>`);
-                
-                // Replace the button with the badge
-                predictBtn.replaceWith(resultBadge);
-            },
-            error: function(error) {
-                // Restore the button to its original state
-                predictBtn.html(originalContent);
-                predictBtn.prop('disabled', false);
-                
-                // Show error as an alert
-                alert('Error: ' + (error.responseJSON?.error || 'Failed to get prediction'));
-            }
+        // Add click event for prediction buttons
+        $('.predict-btn').on('click', function() {
+            const loanId = $(this).data('loan-id');
+            const predictBtn = $(this);
+            const currentRow = predictBtn.closest('tr');
+            
+            // Store original button content
+            const originalContent = predictBtn.html();
+            
+            // Show loading animation in the button with "Predicting..." text
+            predictBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Predicting...');
+            predictBtn.prop('disabled', true);
+            
+            // Make AJAX request to get prediction
+            $.ajax({
+                url: predictionUrl.replace('0', loanId),
+                method: 'GET',
+                success: function(response) {
+                    // Get the prediction result and probability
+                    const prediction = response.prediction;
+                    const probability = (response.probability * 100).toFixed(2);
+                    
+                    // Update the Actions cell with Review button
+                    const actionsCell = currentRow.find('td:nth-last-child(2)');
+                    const reviewUrl = reviewBaseUrl.replace('0', loanId);
+                    const reviewButton = `<a href="${reviewUrl}" class="btn btn-primary btn-sm">Review</a>`;
+                    actionsCell.html(reviewButton);
+                    
+                    // Update the Prediction cell
+                    const predictionCell = currentRow.find('td:last-child');
+                    const predictionBadgeClass = prediction === 'Approved' ? 'bg-success' : 'bg-danger';
+                    const predictionBadge = `<span class="badge ${predictionBadgeClass}">${prediction} | ${probability}%</span>`;
+                    predictionCell.html(predictionBadge);
+                },
+                error: function(error) {
+                    // Restore the button to its original state
+                    predictBtn.html(originalContent);
+                    predictBtn.prop('disabled', false);
+                    
+                    // Show error as an alert
+                    alert('Error: ' + (error.responseJSON?.error || 'Failed to get prediction'));
+                }
+            });
         });
     });
 </script>
-{% endblock %}
-
 {% endblock %} 

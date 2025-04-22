@@ -173,7 +173,7 @@
         const interestRate = parseFloat(document.getElementById('interest_rate').value) || 0;
 
         // Calculate down payment amount
-        const downPaymentAmount = vehicleValue * (downPaymentPercentage / 100);
+        const downPaymentAmount = vehicleValue * downPaymentPercentage;
         document.getElementById('down_payment_amount').value = downPaymentAmount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2

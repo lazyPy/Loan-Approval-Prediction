@@ -102,7 +102,7 @@
                                             <span class="fw-bold d-block">₱{{ loan.loan_details.loan_amount_applied|floatformat:2|intcomma }}</span>
                                         </div>
                                         <div class="mb-2">
-                                            <span class="text-muted">Monthly Payment:</span>
+                                            <span class="text-muted">Monthly Amortization:</span>
                                             <span class="d-block">₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}</span>
                                         </div>
                                         <div class="mb-2">
@@ -143,7 +143,7 @@
                                             </tr>
                                             <tr>
                                                 <th>Monthly Interest:</th>
-                                                <td>{{ current_interest_rate|floatformat:2 }}% per annum</td>
+                                                <td>{{ loan.loan_details.interest_rate|floatformat:2 }}% per annum</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -152,7 +152,7 @@
                                     <table class="table table-sm">
                                         <tbody>
                                             <tr>
-                                                <th width="40%">Monthly Payment:</th>
+                                                <th width="40%">Monthly Amortization:</th>
                                                 <td>₱{{ loan.loan_details.monthly_amortization|floatformat:2|intcomma }}</td>
                                             </tr>
                                             <tr>
@@ -179,32 +179,36 @@
                                             <th>Period</th>
                                             <th>Principal</th>
                                             <th>Interest</th>
-                                            <th>Monthly Payment</th>
+                                            <th>Monthly Amortization</th>
                                             <th>Due Date</th>
                                             <th>Balance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% load custom_filters %}
-                                        {% with loan_amount=loan.loan_details.loan_amount_applied interest_rate=current_interest_rate term=loan.loan_details.loan_amount_term payment=loan.loan_details.monthly_amortization %}
-                                            {% for i in term|make_range %}
-                                                {% with period=forloop.counter %}
-                                                    <tr>
-                                                        <td>{{ period }}</td>
-                                                        {% with interest=loan_amount|mul:interest_rate|div:1200 %}
-                                                            {% with principal=payment|sub:interest %}
-                                                                <td>₱{{ principal|floatformat:2|intcomma }}</td>
-                                                                <td>₱{{ interest|floatformat:2|intcomma }}</td>
-                                                                <td>₱{{ payment|floatformat:2|intcomma }}</td>
-                                                                <td>{% if loan.loan_disbursement_officer_remarks %}{{ loan.loan_disbursement_officer_remarks.disbursement_date|add_months:period }}{% else %}Pending Disbursement{% endif %}</td>
-                                                                {% with remaining_balance=loan_amount|sub:principal|mul:period %}
-                                                                    <td>₱{{ remaining_balance|floatformat:2|intcomma }}</td>
+                                        {% with loan_amount=loan.loan_details.loan_amount_applied interest_rate=loan.loan_details.interest_rate term=loan.loan_details.loan_amount_term payment=loan.loan_details.monthly_amortization %}
+                                            {% with total_amount=payment|mul:term %}
+                                                {% for i in term|make_range %}
+                                                    {% with period=forloop.counter %}
+                                                        <tr>
+                                                            <td>{{ period }}</td>
+                                                            {% with interest=loan_amount|mul:interest_rate|div:1200 %}
+                                                                {% with principal=payment|sub:interest %}
+                                                                    <td>₱{{ principal|floatformat:2|intcomma }}</td>
+                                                                    <td>₱{{ interest|floatformat:2|intcomma }}</td>
+                                                                    <td>₱{{ payment|floatformat:2|intcomma }}</td>
+                                                                    <td>{% if loan.loan_disbursement_officer_remarks %}{{ loan.loan_disbursement_officer_remarks.disbursement_date|add_months:period }}{% else %}Pending Disbursement{% endif %}</td>
+                                                                    {% with payments_made=payment|mul:period %}
+                                                                        {% with remaining_balance=total_amount|sub:payments_made %}
+                                                                            <td>₱{{ remaining_balance|floatformat:2|intcomma }}</td>
+                                                                        {% endwith %}
+                                                                    {% endwith %}
                                                                 {% endwith %}
                                                             {% endwith %}
-                                                        {% endwith %}
-                                                    </tr>
-                                                {% endwith %}
-                                            {% endfor %}
+                                                        </tr>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            {% endwith %}
                                         {% endwith %}
                                     </tbody>
                                 </table>
@@ -434,6 +438,7 @@
     }
 </style>
 {% endif %}
+{% endblock %}
 
 {% block extra_js %}
 <script>
@@ -460,5 +465,4 @@
         });
     });
 </script>
-{% endblock %}
 {% endblock %} 
