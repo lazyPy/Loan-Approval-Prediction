@@ -82,6 +82,9 @@ def loan_application_step(request, step=1):
     # Get loan application identifier from session, but don't create anything yet
     loan_id = request.session.get('loan_id')
     
+    form_class = FORMS[step]['form']
+    form = form_class()
+    
     # Check if this is an AJAX request to save form data
     if request.method == 'POST' and request.headers.get('Content-Type') == 'application/json':
         form_data = json.loads(request.body)
@@ -92,7 +95,6 @@ def loan_application_step(request, step=1):
         return JsonResponse({'status': 'success'})
     
     if request.method == 'POST':
-        form_class = FORMS[step]['form']
         form = form_class(request.POST, request.FILES)
         
         if form.is_valid():
@@ -248,10 +250,7 @@ def loan_application_step(request, step=1):
             return redirect('home')
         
         if saved_data:
-            form_class = FORMS[step]['form']
             form = form_class(initial=saved_data)
-        else:
-            form_class = FORMS[step]['form']
     
     context = {
         'form': form,
