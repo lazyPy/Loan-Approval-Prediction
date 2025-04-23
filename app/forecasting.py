@@ -19,31 +19,9 @@ from datetime import datetime, timedelta
 from .models import Borrower, LoanDisbursementOfficerRemarks, LoanDetails
 import random
 
-# Add these imports for Cloudinary support
-import cloudinary
-import cloudinary.uploader
-from django.conf import settings
-
 # Set random seeds for reproducibility
 np.random.seed(42)
 random.seed(42)
-
-# Initialize Cloudinary from Django settings
-def init_cloudinary():
-    """Initialize Cloudinary with credentials from Django settings"""
-    try:
-        if 'RENDER' in os.environ and hasattr(settings, 'CLOUDINARY_STORAGE'):
-            cloudinary.config(
-                cloud_name=settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', ''),
-                api_key=settings.CLOUDINARY_STORAGE.get('API_KEY', ''),
-                api_secret=settings.CLOUDINARY_STORAGE.get('API_SECRET', ''),
-                secure=True
-            )
-            return True
-        return False
-    except Exception as e:
-        print(f"Error initializing Cloudinary: {e}")
-        return False
 
 def get_recent_completed_loans():
     """Get recent completed loans data for forecasting"""
@@ -71,9 +49,6 @@ def get_recent_completed_loans():
         df.set_index('Date', inplace=True)
         df.sort_index(inplace=True)
         
-        # Print debug info for troubleshooting
-        print(f"DataFrame index type: {type(df.index)}")
-        print(f"First few rows:\n{df.head()}")
     return df
 
 def resample_data(df, freq):
@@ -168,85 +143,6 @@ def train_lstm_model(X_train, y_train, X_test, y_test, epochs=100, batch_size=32
     
     return model, history
 
-def evaluate_model(model, X_test, y_test, scaler):
-    y_pred = model.predict(X_test, verbose=0)
-    
-    # Create arrays for inverse transformation
-    y_test_array = np.zeros((len(y_test), scaler.scale_.shape[0]))
-    y_test_array[:, 0] = y_test.flatten()
-    
-    y_pred_array = np.zeros((len(y_pred), scaler.scale_.shape[0]))
-    y_pred_array[:, 0] = y_pred.flatten()
-    
-    # Inverse transform to original scale
-    y_test_inv = scaler.inverse_transform(y_test_array)[:, 0]
-    y_pred_inv = scaler.inverse_transform(y_pred_array)[:, 0]
-    
-    # Calculate metrics
-    rmse = sqrt(mean_squared_error(y_test_inv, y_pred_inv))
-    mae = mean_absolute_error(y_test_inv, y_pred_inv)
-    mape = np.mean(np.abs((y_test_inv - y_pred_inv) / np.maximum(1e-10, np.abs(y_test_inv)))) * 100
-    
-    return {
-        'rmse': rmse,
-        'mae': mae,
-        'mape': mape,
-        'y_test': y_test_inv,
-        'y_pred': y_pred_inv
-    }
-
-def plot_predictions(y_test, y_pred, title='Actual vs Predicted Values'):
-    plt.figure(figsize=(12, 6))
-    
-    y_test_flat = np.array(y_test).flatten()
-    y_pred_flat = np.array(y_pred).flatten()
-    
-    min_len = min(len(y_test_flat), len(y_pred_flat))
-    x_axis = np.arange(min_len)
-    
-    # Determine the appropriate x-axis label based on title
-    x_label = 'Date'
-    if 'Weekly' in title:
-        x_label = 'Week'
-        # Create week labels
-        x_ticks = x_axis
-        x_tick_labels = [f"Week {i+1}" for i in x_axis]
-    elif 'Monthly' in title:
-        x_label = 'Month'
-        # Create month labels
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        x_ticks = x_axis
-        x_tick_labels = [months[i % 12] for i in x_axis]
-    elif 'Quarterly' in title:
-        x_label = 'Quarter'
-        # Create quarter labels
-        x_ticks = x_axis
-        x_tick_labels = [f"Q{i+1}" for i in x_axis]
-    else:
-        x_label = 'Data Point'
-        x_ticks = x_axis
-        x_tick_labels = [f"Point {i+1}" for i in x_axis]
-    
-    plt.plot(x_axis, y_test_flat[:min_len], label='Actual')
-    plt.plot(x_axis, y_pred_flat[:min_len], label='Predicted')
-    plt.title(title)
-    
-    # Set the custom tick positions and labels
-    plt.xticks(x_ticks, x_tick_labels)
-    
-    plt.xlabel(x_label)
-    plt.ylabel('Loan Amount')
-    plt.legend()
-    plt.tight_layout()
-    
-    # Save to the correct static directory
-    filepath = os.path.join('static', 'img', f"{title.replace(' ', '_').lower()}.png")
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    plt.savefig(filepath)
-    plt.close()
-    return filepath
-
 def prepare_last_sequence(df, seq_length, feature_list):
     """Prepare the last sequence for forecasting"""
     if len(df) < seq_length:
@@ -281,103 +177,32 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=Non
     scaled_features[:, 0] = future_preds
     future_preds_scaled = scaler.inverse_transform(scaled_features)[:, 0]
     
-    # Create future dates
+    # Get the last date from our data or use today if empty
     last_date = timezone.now().date()
     if df is not None and len(df) > 0:
         last_date = df.index[-1]
     
-    freq_map = {'W': 'W', 'M': 'ME', 'Q': 'QE'}
-    freq_to_use = freq_map.get(freq, freq)
-    
+    # Create future dates with correct frequency strings
     if freq == 'W':
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(weeks=1), periods=n_steps, freq=freq_to_use)
+        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), 
+                                   periods=n_steps, 
+                                   freq='W-FRI')  # Weekly on Friday
     elif freq == 'M':
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=n_steps, freq=freq_to_use)
+        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), 
+                                   periods=n_steps, 
+                                   freq='MS')  # Month Start
     elif freq == 'Q':
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=92), periods=n_steps, freq=freq_to_use)
+        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), 
+                                   periods=n_steps, 
+                                   freq='QS')  # Quarter Start
+    else:
+        raise ValueError(f"Invalid frequency: {freq}")
     
     forecast_df = pd.DataFrame({
-        'Date': future_dates,
         'Forecast': future_preds_scaled
-    }).set_index('Date')
+    }, index=future_dates)
     
     return forecast_df
-
-def plot_forecast(historical_data, forecast_data, title='Historical Data and Forecast'):
-    plt.figure(figsize=(12, 6))
-    
-    # Plot historical data
-    history_len = len(historical_data)
-    forecast_len = len(forecast_data)
-    total_len = history_len + forecast_len
-    
-    x_history = np.arange(history_len)
-    x_forecast = np.arange(history_len, total_len)
-    
-    # Determine the appropriate x-axis label based on title
-    x_label = 'Date'
-    if 'Weekly' in title:
-        x_label = 'Week'
-        # Create week labels
-        x_ticks = np.arange(total_len)
-        x_tick_labels = [f"Week {i+1}" for i in range(total_len)]
-        freq_name = 'weekly'
-    elif 'Monthly' in title:
-        x_label = 'Month'
-        # Create month labels
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        x_ticks = np.arange(total_len)
-        x_tick_labels = [months[i % 12] for i in range(total_len)]
-        freq_name = 'monthly'
-    elif 'Quarterly' in title:
-        x_label = 'Quarter'
-        # Create quarter labels
-        x_ticks = np.arange(total_len)
-        x_tick_labels = [f"Q{(i%4)+1}" for i in range(total_len)]
-        freq_name = 'quarterly'
-    else:
-        x_ticks = np.arange(total_len)
-        x_tick_labels = [f"Point {i+1}" for i in range(total_len)]
-        freq_name = title.lower().replace(' ', '_')
-    
-    plt.plot(x_history, historical_data, 'b-', label='Historical Data')
-    plt.plot(x_forecast, forecast_data, 'r--', label='Forecast')
-    plt.title(title)
-    
-    # Set the custom tick positions and labels
-    plt.xticks(x_ticks, x_tick_labels)
-    
-    plt.xlabel(x_label)
-    plt.ylabel('Loan Amount')
-    plt.legend()
-    plt.grid(True)
-    
-    # Save the plot to a file - use consistent naming format for all forecasts
-    filename = f"{freq_name}_sales_forecast.png"
-    filepath = os.path.join('static/img', filename)
-    plt.savefig(filepath)
-    
-    # If in production, upload to Cloudinary
-    if 'RENDER' in os.environ:
-        try:
-            # Initialize Cloudinary
-            if init_cloudinary():
-                # Upload to Cloudinary with consistent public_id
-                result = cloudinary.uploader.upload(
-                    filepath,
-                    public_id=f"forecasts/{freq_name}_sales_forecast",
-                    overwrite=True
-                )
-                print(f"Uploaded {filename} to Cloudinary with public_id forecasts/{freq_name}_sales_forecast")
-            else:
-                print(f"Cloudinary not initialized, skipping upload for {filename}")
-        except Exception as e:
-            print(f"Error uploading to Cloudinary: {e}")
-    
-    plt.close()
-    
-    return filename
 
 def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/ml_models'):
     if not os.path.exists(models_dir):
@@ -456,9 +281,7 @@ def get_combined_loan_data():
         return get_recent_completed_loans()
 
 def train_and_save_models(models_dir='app/ml_models'):
-    os.makedirs('static/img', exist_ok=True)
-    
-    # Use combined historical and recent data
+    """Train and save forecasting models"""
     df = get_combined_loan_data()
     results = {}
     
@@ -497,7 +320,7 @@ def train_and_save_models(models_dir='app/ml_models'):
             else:
                 forecast_values = [last_values[-1]] * config['forecast_steps']
             
-            # Create future dates with updated frequency aliases
+            # Create future dates
             last_date = resampled_df.index[-1]
             freq_map = {'W': 'W', 'M': 'ME', 'Q': 'QE'}
             freq_to_use = freq_map.get(freq, freq)
@@ -508,15 +331,11 @@ def train_and_save_models(models_dir='app/ml_models'):
                 future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=config['forecast_steps'], freq=freq_to_use)
             elif freq == 'Q':
                 future_dates = pd.date_range(start=last_date + pd.Timedelta(days=92), periods=config['forecast_steps'], freq=freq_to_use)
-            else:
-                future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=config['forecast_steps'], freq='ME')
             
             forecast = pd.DataFrame({
                 'Date': future_dates,
                 'Forecast': forecast_values
             }).set_index('Date')
-            
-            plot_forecast(resampled_df, forecast, f'{freq} Frequency - Forecast')
             
             # Save a dummy model with proper Input layer
             dummy_model = Sequential([
@@ -542,14 +361,8 @@ def train_and_save_models(models_dir='app/ml_models'):
             epochs=50 if freq == 'Q' else 100
         )
         
-        # Evaluate if test data exists
-        if len(X_test) > 0:
-            eval_results = evaluate_model(model, X_test, y_test, scaler)
-            plot_predictions(eval_results['y_test'], eval_results['y_pred'], f'{freq} Frequency - Actual vs Predicted')
-        
         # Generate forecast
         forecast = generate_future_forecast(model, X_seq[-1], config['forecast_steps'], scaler, freq, df)
-        plot_forecast(resampled_df, forecast, f'{freq} Frequency - Forecast')
         
         # Save model
         save_model(model, scaler, freq, features, config['seq_length'], models_dir)
@@ -558,435 +371,201 @@ def train_and_save_models(models_dir='app/ml_models'):
     print("All models trained and saved successfully!")
     return results
 
-def make_new_forecast(freq, steps):
-    """Generate a new forecast based on combined historical and recent data"""
+def analyze_forecast_trend(forecast_values):
+    """
+    Analyze forecast trend to determine if it's increasing or decreasing,
+    and provide relevant insights and recommendations.
+    
+    Args:
+        forecast_values: List of forecast values
+    
+    Returns:
+        dict: Contains trend information, insights, and recommendations
+    """
+    if not forecast_values or len(forecast_values) < 2:
+        return {
+            'trend': 'neutral',
+            'insight': 'Insufficient data for trend analysis.',
+            'recommendation': 'Add more completed loans to improve accuracy.'
+        }
+    
+    # Calculate slope using linear regression
+    x = np.arange(len(forecast_values))
+    y = np.array(forecast_values)
+    
+    # Use polyfit to get slope
+    slope, _ = np.polyfit(x, y, 1)
+    
+    # Calculate percent change from first to last value
+    first_value = forecast_values[0]
+    last_value = forecast_values[-1]
+    
+    if first_value <= 0:  # Avoid division by zero
+        percent_change = 0
+    else:
+        percent_change = ((last_value - first_value) / first_value) * 100
+    
+    # Determine trend direction and magnitude
+    if slope > 0 and percent_change > 5:
+        trend = 'increasing'
+        insight = 'Loan disbursement is forecasted to rise, indicating growing demand for vehicle financing.'
+        recommendation = 'Improve process efficiency, closely monitor credit risk, and ensure adequate fund availability to support the demand.'
+    elif slope < 0 and percent_change < -5:
+        trend = 'decreasing'
+        insight = 'Loan disbursement is forecasted to decline, indicating lower demand for vehicle financing.'
+        recommendation = 'Review market trends, strengthen marketing efforts, and consider offering flexible loan options to attract borrowers or applicants.'
+    else:
+        trend = 'stable'
+        insight = 'Loan disbursement is forecasted to remain relatively stable.'
+        recommendation = 'Maintain current lending practices while monitoring market conditions for potential changes.'
+    
+    return {
+        'trend': trend,
+        'insight': insight,
+        'recommendation': recommendation,
+        'percent_change': round(percent_change, 2)
+    }
+
+def get_forecast_data(freq):
+    """Get forecast data in format suitable for charts"""
     try:
-        # Load the saved model and associated files
-        model, scaler, seq_length, features = load_saved_model(freq)
-        if model is None:
-            return None, "Failed to load model"
-        
-        # Get combined historical and recent data
+        # Get combined data
         df = get_combined_loan_data()
         if len(df) == 0:
-            return None, "No data available for forecasting"
-        
-        # Resample data to specified frequency
+            return {
+                'historical': {'dates': [], 'values': []},
+                'trend': {'dates': [], 'values': []},
+                'seasonal': {'dates': [], 'values': []},
+                'residual': {'dates': [], 'values': []},
+                'forecast': {'dates': [], 'values': []},
+                'analysis': {
+                    'trend': 'neutral',
+                    'insight': 'No loan data available.',
+                    'recommendation': 'Add completed loans to enable forecasting.'
+                }
+            }
+            
+        # Resample data
         resampled_df = resample_data(df, freq)
         
-        # Create features
-        feature_df = create_features(resampled_df)
-        if len(feature_df) < seq_length:
-            return None, f"Insufficient data: need at least {seq_length} periods"
+        # Convert dates to string format for JSON
+        dates = resampled_df.index.strftime('%Y-%m-%d').tolist()
+        values = resampled_df['Sales'].tolist()
         
-        # Prepare last sequence for forecasting
-        last_sequence = prepare_last_sequence(feature_df, seq_length, features)
-        if last_sequence is None:
-            return None, "Failed to prepare sequence for forecasting"
-        
-        # Scale the last sequence
-        last_sequence_scaled = scaler.transform(last_sequence)
+        try:
+            # Perform decomposition with appropriate period
+            if freq == 'W':
+                period = 52  # Weekly data (52 weeks in a year)
+            elif freq == 'M':
+                period = 12  # Monthly data (12 months in a year)
+            elif freq == 'Q':
+                period = 4   # Quarterly data (4 quarters in a year)
+            else:
+                period = 1
+            
+            # Only perform decomposition if we have enough data points
+            if len(resampled_df) >= period * 2:
+                decomposition = seasonal_decompose(resampled_df['Sales'], model='additive', period=period)
+                trend = decomposition.trend.fillna(method='bfill').fillna(method='ffill').values.tolist()
+                seasonal = decomposition.seasonal.fillna(method='bfill').fillna(method='ffill').values.tolist()
+                residual = decomposition.resid.fillna(method='bfill').fillna(method='ffill').values.tolist()
+            else:
+                # If not enough data, use simple moving averages
+                trend = resampled_df['Sales'].rolling(window=min(len(resampled_df), 3)).mean().fillna(method='bfill').fillna(method='ffill').values.tolist()
+                seasonal = [0] * len(dates)  # No seasonal component
+                residual = (resampled_df['Sales'] - pd.Series(trend, index=resampled_df.index)).values.tolist()
+        except Exception as e:
+            print(f"Error in decomposition: {e}")
+            # Fallback to simple trend
+            trend = resampled_df['Sales'].rolling(window=min(len(resampled_df), 3)).mean().fillna(method='bfill').fillna(method='ffill').values.tolist()
+            seasonal = [0] * len(dates)
+            residual = [0] * len(dates)
         
         # Generate forecast
-        forecast_df = generate_future_forecast(model, last_sequence_scaled, steps, scaler, freq, df)
-        if len(forecast_df) == 0:
-            return None, "Failed to generate forecast"
-        
-        # Plot the forecast
-        title = f"{freq} Frequency - Forecast"
-        image_path = plot_forecast(resampled_df['Sales'].values, forecast_df['Forecast'].values, title)
-        
-        return forecast_df, image_path
-    except Exception as e:
-        print(f"Error in make_new_forecast: {e}")
-        return None, str(e)
-
-def plot_decomposition(resampled_df, freq_name, img_dir='static/img'):
-    """Generate and save time series decomposition plots"""
-    try:
-        # Create the directory if it doesn't exist
-        os.makedirs(img_dir, exist_ok=True)
-        
-        # Perform seasonal decomposition
-        decomposition = seasonal_decompose(resampled_df['Sales'], model='additive', period=4)
-        
-        # Create trend plot
-        plt.figure(figsize=(10, 4))
-        plt.plot(decomposition.trend)
-        plt.title(f"{freq_name} Frequency - Trend")
-        plt.tight_layout()
-        trend_filename = f"{freq_name}_Frequency_-_Trend.png"
-        trend_filepath = os.path.join(img_dir, trend_filename)
-        plt.savefig(trend_filepath)
-        plt.close()
-        
-        # Create seasonal plot
-        plt.figure(figsize=(10, 4))
-        plt.plot(decomposition.seasonal)
-        plt.title(f"{freq_name} Frequency - Seasonal")
-        plt.tight_layout()
-        seasonal_filename = f"{freq_name}_Frequency_-_Seasonal.png"
-        seasonal_filepath = os.path.join(img_dir, seasonal_filename)
-        plt.savefig(seasonal_filepath)
-        plt.close()
-        
-        # Create residual plot
-        plt.figure(figsize=(10, 4))
-        plt.plot(decomposition.resid)
-        plt.title(f"{freq_name} Frequency - Residual")
-        plt.tight_layout()
-        residual_filename = f"{freq_name}_Frequency_-_Residual.png"
-        residual_filepath = os.path.join(img_dir, residual_filename)
-        plt.savefig(residual_filepath)
-        plt.close()
-        
-        # Create overall historical data plot
-        plt.figure(figsize=(10, 4))
-        plt.plot(resampled_df['Sales'])
-        plt.title(f"{freq_name} Frequency - Historical Data")
-        plt.tight_layout()
-        historical_filename = f"{freq_name}_Frequency_-_Historical_Data.png"
-        historical_filepath = os.path.join(img_dir, historical_filename)
-        plt.savefig(historical_filepath)
-        plt.close()
-        
-        # Create model performance plot (dummy plot when we don't have actual model performance)
-        plt.figure(figsize=(10, 4))
-        plt.plot(resampled_df['Sales'], label='Actual')
-        
-        # For this example, we'll create a simple shifted version as the "predicted" values
-        # In a real application, you would use actual model predictions
-        predicted = resampled_df['Sales'].shift(1).fillna(method='bfill')
-        plt.plot(predicted, label='Predicted', linestyle='--')
-        
-        plt.title(f"{freq_name} Frequency - Model Performance")
-        plt.legend()
-        plt.tight_layout()
-        performance_filename = f"{freq_name}_Frequency_-_Model_Performance.png"
-        performance_filepath = os.path.join(img_dir, performance_filename)
-        plt.savefig(performance_filepath)
-        plt.close()
-        
-        # If in production, upload to Cloudinary
-        if 'RENDER' in os.environ:
-            # Initialize Cloudinary
-            if init_cloudinary():
-                for filename in [trend_filename, seasonal_filename, residual_filename, 
-                                historical_filename, performance_filename]:
-                    try:
-                        filepath = os.path.join(img_dir, filename)
-                        # Upload to Cloudinary
-                        result = cloudinary.uploader.upload(
-                            filepath,
-                            public_id=f"forecasts/{filename.split('.')[0]}",
-                            overwrite=True
-                        )
-                        print(f"Uploaded {filename} to Cloudinary")
-                    except Exception as e:
-                        print(f"Error uploading to Cloudinary: {e}")
-            else:
-                print("Cloudinary not initialized, skipping uploads")
-        
-        print(f"Created decomposition plots for {freq_name} frequency")
-        return True
-    except Exception as e:
-        print(f"Error creating decomposition plots for {freq_name}: {str(e)}")
-        return False
-
-def create_fallback_forecast(freq_name):
-    """Create placeholder forecast image"""
-    try:
-        plt.figure(figsize=(10, 4))
-        plt.text(0.5, 0.5, f"Insufficient data for {freq_name} forecasting", 
-                horizontalalignment='center', verticalalignment='center',
-                transform=plt.gca().transAxes, fontsize=14)
-        plt.axis('off')
-        # Fix the filename to match what the template expects
-        forecast_filename = f"{freq_name.lower()}_sales_forecast.png"
-        forecast_path = os.path.join('static/img', forecast_filename)
-        plt.savefig(forecast_path)
-        plt.close()
-        print(f"Created placeholder forecast image: {forecast_path}")
-        
-        # If in production, upload to Cloudinary
-        if 'RENDER' in os.environ:
-            # Initialize Cloudinary
-            if init_cloudinary():
-                try:
-                    result = cloudinary.uploader.upload(
-                        forecast_path,
-                        public_id=f"forecasts/{freq_name.lower()}_sales_forecast",  # Fixed to match template path exactly
-                        overwrite=True
-                    )
-                    print(f"Uploaded forecast image to Cloudinary: {freq_name.lower()}_sales_forecast")
-                except Exception as e:
-                    print(f"Error uploading forecast to Cloudinary: {e}")
-            else:
-                print(f"Cloudinary not initialized, skipping upload for {forecast_path}")
-        
-        return True
-    except Exception as e:
-        print(f"Error creating fallback forecast image: {str(e)}")
-        return False
-
-# Add a function to create a no_image placeholder
-def create_no_image_placeholder():
-    """Create a no_image placeholder for when images are not found"""
-    try:
-        plt.figure(figsize=(10, 6))
-        plt.text(0.5, 0.5, 'No Image Available', 
-                horizontalalignment='center', verticalalignment='center',
-                transform=plt.gca().transAxes, fontsize=20, color='gray')
-        plt.axis('off')
-        no_image_path = os.path.join('static/img', 'no_image.png')
-        plt.savefig(no_image_path)
-        plt.close()
-        print(f"Created no_image placeholder: {no_image_path}")
-        
-        # If in production, upload to Cloudinary
-        if 'RENDER' in os.environ:
-            # Initialize Cloudinary
-            if init_cloudinary():
-                try:
-                    result = cloudinary.uploader.upload(
-                        no_image_path,
-                        public_id="forecasts/no_image",
-                        overwrite=True
-                    )
-                    print("Uploaded no_image placeholder to Cloudinary")
-                except Exception as e:
-                    print(f"Error uploading no_image to Cloudinary: {e}")
-        
-        return True
-    except Exception as e:
-        print(f"Error creating no_image placeholder: {str(e)}")
-        return False
-
-def generate_initial_images():
-    """Generate initial forecast images using combined historical and recent data"""
-    try:
-        # Create the static/img directory if it doesn't exist
-        os.makedirs('static/img', exist_ok=True)
-        
-        # Create a no_image placeholder
-        create_no_image_placeholder()
-        
-        # Get combined historical and recent data
-        df = get_combined_loan_data()
-        
-        # If we have data, process it
-        if len(df) > 0:
-            print(f"DataFrame index type: {type(df.index)}")
-            print("First few rows:")
-            print(df.head(2))
-            print(f"Found {len(df)} completed loans")
-            
-            # Define frequencies to process
-            frequencies = [('W', 'Weekly'), ('M', 'Monthly'), ('Q', 'Quarterly')]
-            
-            # Process each frequency
-            for freq, freq_name in frequencies:
-                print(f"Processing {freq_name} frequency...")
-                
-                # Ensure directory exists
-                os.makedirs('static/img', exist_ok=True)
-                
-                # Resample data
-                resampled_df = resample_data(df, freq)
-                print(f"Resampled to {len(resampled_df)} {freq_name.lower()} periods")
-                
-                # Create decomposition plots
-                if len(resampled_df) >= 8:  # Need at least 8 periods for proper decomposition
-                    success = plot_decomposition(resampled_df, freq_name)
-                    if not success:
-                        print(f"Failed to generate decomposition plots for {freq_name} frequency")
-                        create_fallback_images(freq_name)
+        try:
+            model, scaler, seq_length, features = load_saved_model(freq)
+            if model is not None:
+                feature_df = create_features(resampled_df)
+                last_sequence = prepare_last_sequence(feature_df, seq_length, features)
+                if last_sequence is not None:
+                    last_sequence_scaled = scaler.transform(last_sequence)
+                    forecast_steps = {'W': 12, 'M': 12, 'Q': 8}[freq]
+                    forecast_df = generate_future_forecast(model, last_sequence_scaled, forecast_steps, scaler, freq, df)
+                    
+                    forecast_dates = forecast_df.index.strftime('%Y-%m-%d').tolist()
+                    forecast_values = forecast_df['Forecast'].tolist()
+                    
+                    # Analyze forecast trend
+                    analysis = analyze_forecast_trend(forecast_values)
                 else:
-                    print(f"Not enough data for {freq_name} decomposition (need at least 8 periods, got {len(resampled_df)})")
-                    
-                    # Generate historical data image
-                    plt.figure(figsize=(10, 4))
-                    plt.plot(resampled_df.index, resampled_df['Sales'])
-                    plt.title(f"{freq_name} Historical Data")
-                    plt.xlabel('Date')
-                    plt.ylabel('Loan Amount')
-                    plt.grid(True)
-                    plt.tight_layout()
-                    historical_filename = f"{freq_name}_Frequency_-_Historical_Data.png"
-                    historical_path = os.path.join('static/img', historical_filename)
-                    plt.savefig(historical_path)
-                    plt.close()
-                    print(f"Generated historical data image: {historical_path}")
-                    
-                    # Upload historical data image to Cloudinary in production
-                    if 'RENDER' in os.environ:
-                        try:
-                            # Initialize Cloudinary
-                            if init_cloudinary():
-                                # Upload to Cloudinary
-                                result = cloudinary.uploader.upload(
-                                    historical_path,
-                                    public_id=f"forecasts/{historical_filename.split('.')[0]}",
-                                    overwrite=True
-                                )
-                                print(f"Uploaded historical data image to Cloudinary: {historical_filename}")
-                            else:
-                                print(f"Cloudinary not initialized, skipping upload for {historical_filename}")
-                        except Exception as e:
-                            print(f"Error uploading historical data to Cloudinary: {e}")
-                    
-                    # Create placeholder images
-                    print(f"Creating placeholder images for {freq_name}")
-                    create_fallback_images(freq_name)
-                
-                # Generate forecast image with dummy forecast
-                try:
-                    # Create synthetic forecast data
-                    today = timezone.now().date()
-                    
-                    # Get the last date from our resampled data or use today if empty
-                    if len(resampled_df) > 0:
-                        last_date = resampled_df.index[-1]
-                    else:
-                        # Make sure we're using the right frequency string format
-                        if freq == 'W':
-                            freq_str = 'W-FRI'  # Weekly on Friday
-                        elif freq == 'M':
-                            freq_str = 'MS'  # Month Start
-                        elif freq == 'Q':
-                            freq_str = 'QS'  # Quarter Start
-                        else:
-                            freq_str = freq
-                            
-                        last_date = pd.date_range(end=today, periods=1, freq=freq_str)[0]
-                    
-                    # Generate some future dates
-                    if freq == 'W':
-                        future_dates = pd.date_range(start=last_date, periods=10, freq='W-FRI')[1:]
-                    elif freq == 'M':
-                        future_dates = pd.date_range(start=last_date, periods=10, freq='MS')[1:]
-                    elif freq == 'Q':
-                        future_dates = pd.date_range(start=last_date, periods=10, freq='QS')[1:]
-                    
-                    # Generate forecast values (just random values here)
-                    np.random.seed(42)  # For reproducibility
-                    if len(resampled_df) > 0:
-                        forecast_mean = resampled_df['Sales'].mean()
-                        forecast_std = resampled_df['Sales'].std()
-                        if np.isnan(forecast_std) or forecast_std == 0:
-                            forecast_std = forecast_mean * 0.1 if forecast_mean > 0 else 1000000
-                    else:
-                        forecast_mean = 5000000
-                        forecast_std = 1000000
-                    
-                    forecast_values = np.random.normal(forecast_mean, forecast_std, len(future_dates))
-                    forecast_values = np.maximum(forecast_values, 0)  # Ensure no negative values
-                    
-                    # Create forecast plot
-                    if len(resampled_df) > 0:
-                        historical_values = resampled_df['Sales'].values
-                        plot_forecast(historical_values, forecast_values, f"{freq_name} Sales Forecast")
-                    else:
-                        dummy_hist = np.array([forecast_mean * 0.9])
-                        plot_forecast(dummy_hist, forecast_values, f"{freq_name} Sales Forecast")
-                
-                except Exception as e:
-                    print(f"Error processing {freq} frequency: {str(e)}")
-                    # Create fallback forecast image
-                    create_fallback_forecast(freq_name)
-            
-            return True
-                
-        else:
-            print("No completed loans found. Creating placeholder images.")
-            
-            # Create placeholder images for all frequencies
-            for _, freq_name in [('W', 'Weekly'), ('M', 'Monthly'), ('Q', 'Quarterly')]:
-                create_fallback_images(freq_name)
-                create_fallback_forecast(freq_name)
-            
-            return False
-            
-    except Exception as e:
-        print(f"Error in generate_initial_images: {str(e)}")
-        
-        # Create basic placeholder images as fallback
-        for _, freq_name in [('W', 'Weekly'), ('M', 'Monthly'), ('Q', 'Quarterly')]:
-            create_fallback_images(freq_name)
-            create_fallback_forecast(freq_name)
-        
-        return False
-
-def create_fallback_images(freq_name):
-    """Create placeholder images for when real data is unavailable"""
-    try:
-        # Create placeholder trend image
-        plt.figure(figsize=(10, 4))
-        plt.text(0.5, 0.5, f"Insufficient data for {freq_name} trend analysis", 
-                horizontalalignment='center', verticalalignment='center',
-                transform=plt.gca().transAxes, fontsize=14)
-        plt.axis('off')
-        plt.savefig(f"static/img/{freq_name}_Frequency_-_Trend.png")
-        plt.close()
-        
-        # Create placeholder seasonal image
-        plt.figure(figsize=(10, 4))
-        plt.text(0.5, 0.5, f"Insufficient data for {freq_name} seasonal analysis", 
-                horizontalalignment='center', verticalalignment='center',
-                transform=plt.gca().transAxes, fontsize=14)
-        plt.axis('off')
-        plt.savefig(f"static/img/{freq_name}_Frequency_-_Seasonal.png")
-        plt.close()
-        
-        # Create placeholder residual image
-        plt.figure(figsize=(10, 4))
-        plt.text(0.5, 0.5, f"Insufficient data for {freq_name} residual analysis", 
-                horizontalalignment='center', verticalalignment='center',
-                transform=plt.gca().transAxes, fontsize=14)
-        plt.axis('off')
-        plt.savefig(f"static/img/{freq_name}_Frequency_-_Residual.png")
-        plt.close()
-        
-        # Create placeholder model performance image
-        plt.figure(figsize=(10, 4))
-        plt.text(0.5, 0.5, f"Insufficient data for {freq_name} model evaluation", 
-                horizontalalignment='center', verticalalignment='center',
-                transform=plt.gca().transAxes, fontsize=14)
-        plt.axis('off')
-        plt.savefig(f"static/img/{freq_name}_Frequency_-_Model_Performance.png")
-        plt.close()
-        print(f"Created placeholder model performance image: static/img/{freq_name}_Frequency_-_Model_Performance.png")
-        
-        # If in production, upload to Cloudinary
-        if 'RENDER' in os.environ:
-            # Initialize Cloudinary
-            if init_cloudinary():
-                for component in ['Trend', 'Seasonal', 'Residual', 'Model_Performance']:
-                    filename = f"{freq_name}_Frequency_-_{component}.png"
-                    filepath = os.path.join('static/img', filename)
-                    try:
-                        result = cloudinary.uploader.upload(
-                            filepath,
-                            public_id=f"forecasts/{filename.split('.')[0]}",
-                            overwrite=True
-                        )
-                        print(f"Uploaded placeholder {component} to Cloudinary: {filename}")
-                    except Exception as e:
-                        print(f"Error uploading placeholder to Cloudinary: {e}")
+                    forecast_dates = []
+                    forecast_values = []
+                    analysis = {
+                        'trend': 'neutral',
+                        'insight': 'Insufficient sequence data.',
+                        'recommendation': 'Add more loan data for better forecasting.'
+                    }
             else:
-                print("Cloudinary not initialized, skipping uploads")
+                forecast_dates = []
+                forecast_values = []
+                analysis = {
+                    'trend': 'neutral',
+                    'insight': 'No forecast model available.',
+                    'recommendation': 'Use "Update Forecasts" button to generate model.'
+                }
+        except Exception as e:
+            print(f"Error generating forecast: {e}")
+            forecast_dates = []
+            forecast_values = []
+            analysis = {
+                'trend': 'neutral',
+                'insight': f'Error generating forecast: {str(e)}',
+                'recommendation': 'Try regenerating forecasts.'
+            }
         
-        return True
+        return {
+            'historical': {
+                'dates': dates,
+                'values': values
+            },
+            'trend': {
+                'dates': dates,
+                'values': trend
+            },
+            'seasonal': {
+                'dates': dates,
+                'values': seasonal
+            },
+            'residual': {
+                'dates': dates,
+                'values': residual
+            },
+            'forecast': {
+                'dates': forecast_dates,
+                'values': forecast_values
+            },
+            'analysis': analysis
+        }
+        
     except Exception as e:
-        print(f"Error creating fallback images: {str(e)}")
-        return False
+        print(f"Error getting forecast data: {e}")
+        # Return empty data structure instead of None
+        return {
+            'historical': {'dates': [], 'values': []},
+            'trend': {'dates': [], 'values': []},
+            'seasonal': {'dates': [], 'values': []},
+            'residual': {'dates': [], 'values': []},
+            'forecast': {'dates': [], 'values': []},
+            'analysis': {
+                'trend': 'neutral',
+                'insight': f'Error analyzing data: {str(e)}',
+                'recommendation': 'Try regenerating forecasts.'
+            }
+        }
 
 if __name__ == "__main__":
     try:
-        # Generate initial images for the templates
-        generate_initial_images()
-        
-        # Train models if needed
+        # Train models
         results = train_and_save_models()
         print("All models trained and saved successfully!")
     except Exception as e:

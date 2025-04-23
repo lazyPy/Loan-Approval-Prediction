@@ -37,8 +37,8 @@ urlpatterns = [
     path('area-manager/', views.area_manager_dashboard, name='area_manager_dashboard'),
     path('area-manager/loan/<int:loan_id>/', views.area_manager_loan_details, name='area_manager_loan_details'),
     path('area-manager/forecasting/', views.area_manager_forecasting, name='area_manager_forecasting'),
-    path('area-manager/make-forecast/', views.make_new_forecast, name='make_new_forecast'),
     path('area-manager/regenerate-forecasts/', views.regenerate_forecasts, name='regenerate_forecasts'),
+    path('area-manager/get-forecast-data/<str:frequency>/', views.get_forecast_data_view, name='get_forecast_data'),
     
     # System Administrator URLs
     path('system-admin/', views.admin_dashboard, name='admin_dashboard'),

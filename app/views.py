@@ -32,6 +32,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from functools import wraps
 from PIL import Image, ImageDraw, ImageFont
+from .forecasting import get_forecast_data
 
 def role_required(allowed_roles):
     def decorator(view_func):
@@ -1312,14 +1313,6 @@ def area_manager_loan_details(request, loan_id):
 @role_required(['AREA'])
 def area_manager_forecasting(request):
     """View to display forecasting data for Area Manager"""
-    import os
-    
-    # Check if initial forecast images exist, if not generate them
-    from .forecasting import generate_initial_images
-    generate_initial_images()
-    
-    # Get statistics from database models
-    from .models import DailyLoanDisbursement, WeeklyLoanDisbursement, MonthlyLoanDisbursement, YearlyLoanDisbursement
     
     # Get most recent statistics
     daily_stats = DailyLoanDisbursement.objects.order_by('-date')[:30]
@@ -1327,149 +1320,36 @@ def area_manager_forecasting(request):
     monthly_stats = MonthlyLoanDisbursement.objects.order_by('-year', '-month')[:12]
     yearly_stats = YearlyLoanDisbursement.objects.order_by('-year')[:5]
     
-    # Check if we're in production (Render)
-    in_production = 'RENDER' in os.environ
-    
     context = {
         'daily_stats': daily_stats,
         'weekly_stats': weekly_stats,
         'monthly_stats': monthly_stats,
         'yearly_stats': yearly_stats,
-        'in_production': in_production,
     }
     
     return render(request, 'app/area_manager/forecasting.html', context)
 
 @login_required
-def make_new_forecast(request):
-    """Generate a new forecast based on user parameters"""
-    if request.method == 'GET':
-        try:
-            # Get parameters from request
-            frequency = request.GET.get('frequency')
-            steps = int(request.GET.get('steps', 12))
-            
-            # Validate frequency
-            if frequency not in ['W', 'M', 'Q']:
-                return JsonResponse({'error': 'Invalid frequency'}, status=400)
-            
-            # Generate forecast using the updated function
-            from .forecasting import make_new_forecast
-            forecast_df, result = make_new_forecast(frequency, steps)
-            
-            if forecast_df is None:
-                # If forecast generation failed, try to create a simple forecast
-                try:
-                    from .forecasting import get_recent_completed_loans, resample_data
-                    import numpy as np
-                    import pandas as pd
-                    import os
-                    from django.utils import timezone
-                    
-                    # Get recent data
-                    df = get_recent_completed_loans()
-                    if len(df) > 0:
-                        resampled_df = resample_data(df, frequency)
-                        
-                        # Create a simple forecast based on average growth
-                        last_values = resampled_df['Sales'].values[-min(3, len(resampled_df)):]
-                        if len(last_values) >= 2:
-                            avg_growth = np.mean([last_values[i] - last_values[i-1] for i in range(1, len(last_values))])
-                            forecast_values = [last_values[-1] + avg_growth * (i+1) for i in range(steps)]
-                        else:
-                            # If only one data point, use it as baseline with random growth
-                            base_value = last_values[-1]
-                            forecast_values = [base_value * (1 + np.random.uniform(-0.05, 0.1)) for _ in range(steps)]
-                        
-                        # Create future dates
-                        last_date = resampled_df.index[-1]
-                        freq_map = {'W': 'W', 'M': 'ME', 'Q': 'QE'}
-                        freq_to_use = freq_map.get(frequency, 'ME')
-                        
-                        if frequency == 'W':
-                            future_dates = pd.date_range(start=last_date + pd.Timedelta(weeks=1), periods=steps, freq=freq_to_use)
-                        elif frequency == 'M':
-                            future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=steps, freq=freq_to_use)
-                        elif frequency == 'Q':
-                            future_dates = pd.date_range(start=last_date + pd.Timedelta(days=92), periods=steps, freq=freq_to_use)
-                        
-                        # Create forecast DataFrame
-                        forecast_df = pd.DataFrame({
-                            'Date': future_dates,
-                            'Forecast': forecast_values
-                        }).set_index('Date')
-                        
-                        # Generate a simple forecast chart
-                        freq_name = {'W': 'Weekly', 'M': 'Monthly', 'Q': 'Quarterly'}[frequency]
-                        title = f"{freq_name} Frequency - Forecast"
-                        
-                        # Use matplotlib for charting
-                        import matplotlib.pyplot as plt
-                        plt.figure(figsize=(12, 6))
-                        plt.plot(resampled_df.index, resampled_df['Sales'], label='Historical')
-                        plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red')
-                        plt.title(title)
-                        plt.xlabel('Date')
-                        plt.ylabel('Amount')
-                        plt.legend()
-                        plt.grid(True)
-                        
-                        # Save the chart
-                        img_dir = 'static/img'
-                        os.makedirs(img_dir, exist_ok=True)
-                        image_path = os.path.join(img_dir, f"{title.replace(' ', '_').lower()}.png")
-                        plt.savefig(image_path)
-                        plt.close()
-                        
-                        # Format data for response
-                        forecast_data = []
-                        for date, value in forecast_df.iterrows():
-                            forecast_data.append({
-                                'date': date.strftime('%Y-%m-%d'),
-                                'value': float(value['Forecast'])
-                            })
-                        
-                        return JsonResponse({
-                            'success': True,
-                            'forecast_data': forecast_data,
-                            'image_path': f"/static/img/{title.replace(' ', '_').lower()}.png",
-                            'note': 'Simple forecast generated due to model issues'
-                        })
-                    
-                except Exception as fallback_error:
-                    print(f"Fallback forecast generation failed: {fallback_error}")
-                
-                # If all fails, return the error
-                return JsonResponse({'error': result})
-            
-            # Format the forecast data for JSON response
-            forecast_data = []
-            for date, value in forecast_df.iterrows():
-                forecast_data.append({
-                    'date': date.strftime('%Y-%m-%d'),
-                    'value': float(value['Forecast'])
-                })
-            
-            # Ensure image path starts with /static/
-            image_path = result
-            if not image_path.startswith('/static/'):
-                image_path = f"/{result}"
-                if not image_path.startswith('/static/'):
-                    image_path = f"/static/img/{os.path.basename(result)}"
-            
-            # Return the forecast data and image path
-            return JsonResponse({
-                'success': True,
-                'forecast_data': forecast_data,
-                'image_path': image_path
-            })
-            
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return JsonResponse({'error': str(e)})
+def regenerate_forecasts(request):
+    """Regenerate forecasts with the latest data"""
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'error': 'Only GET requests are allowed'})
     
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    try:
+        # Train new models with latest data
+        from .forecasting import train_and_save_models
+        results = train_and_save_models()
+        
+        if results:
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to generate forecasts'})
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        print(f"Error regenerating forecasts: {error_msg}")
+        print(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': error_msg})
 
 def generate_future_forecast(model, last_sequence, n_steps, scaler, freq):
     """Generate future forecast using the pre-trained model"""
@@ -1510,38 +1390,7 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq):
     }).set_index('Date')
     
     return forecast_df
-
-def generate_forecast_chart(forecast_data, title):
-    """Generate a chart for the forecast data"""
-    plt.figure(figsize=(12, 6))
     
-    # Plot forecast
-    plt.plot(forecast_data.index, forecast_data['Forecast'], marker='o', linestyle='-', color='blue')
-    
-    # Add title and labels
-    plt.title(title)
-    plt.xlabel('Date')
-    plt.ylabel('Sales Amount')
-    plt.grid(True, linestyle='--', alpha=0.7)
-    
-    # Format x-axis dates
-    plt.gcf().autofmt_xdate()
-    
-    # Add a trend line
-    z = np.polyfit(range(len(forecast_data)), forecast_data['Forecast'], 1)
-    p = np.poly1d(z)
-    plt.plot(forecast_data.index, p(range(len(forecast_data))), "r--", alpha=0.7)
-    
-    # Ensure directory exists
-    os.makedirs('static/img', exist_ok=True)
-    
-    # Save the chart
-    image_path = f'/static/img/{title.replace(" ", "_")}.png'
-    plt.savefig(f'static{image_path}', bbox_inches='tight')
-    plt.close()
-    
-    return image_path
-
 # System Administrator Views
 @login_required
 @role_required(['ADMIN'])
@@ -2022,24 +1871,41 @@ def contact_us(request):
 @login_required
 @role_required(['AREA'])
 def regenerate_forecasts(request):
-    """Regenerate all forecast images with the latest data"""
+    """Regenerate forecasts with the latest data"""
     if request.method != 'GET':
         return JsonResponse({'success': False, 'error': 'Only GET requests are allowed'})
     
     try:
-        # Import the forecasting module functions
-        from .forecasting import generate_initial_images
+        # Train new models with latest data
+        from .forecasting import train_and_save_models
+        results = train_and_save_models()
         
-        # Regenerate all forecast images
-        success = generate_initial_images()
-        
-        if success:
+        if results:
             return JsonResponse({'success': True})
         else:
-            return JsonResponse({'success': False, 'error': 'Failed to generate forecast images'})
+            return JsonResponse({'success': False, 'error': 'Failed to generate forecasts'})
     except Exception as e:
         import traceback
         error_msg = str(e)
         print(f"Error regenerating forecasts: {error_msg}")
         print(traceback.format_exc())
         return JsonResponse({'success': False, 'error': error_msg})
+
+@login_required
+def get_forecast_data_view(request, frequency):
+    """API endpoint to get forecast data for charts"""
+    freq_map = {
+        'weekly': 'W',
+        'monthly': 'M',
+        'quarterly': 'Q'
+    }
+    
+    freq = freq_map.get(frequency.lower())
+    if not freq:
+        return JsonResponse({'error': 'Invalid frequency'}, status=400)
+        
+    data = get_forecast_data(freq)
+    if data is None:
+        return JsonResponse({'error': 'Failed to generate forecast data'}, status=500)
+        
+    return JsonResponse(data)
