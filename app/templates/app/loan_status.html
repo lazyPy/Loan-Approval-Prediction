@@ -192,8 +192,8 @@
                                                     {% with period=forloop.counter %}
                                                         <tr>
                                                             <td>{{ period }}</td>
-                                                            {% with interest=loan_amount|mul:interest_rate|div:1200 %}
-                                                                {% with principal=payment|sub:interest %}
+                                                            {% with principal=loan_amount|div:term %}
+                                                                {% with interest=principal|mul:interest_rate|div:100 %}
                                                                     <td>₱{{ principal|floatformat:2|intcomma }}</td>
                                                                     <td>₱{{ interest|floatformat:2|intcomma }}</td>
                                                                     <td>₱{{ payment|floatformat:2|intcomma }}</td>
