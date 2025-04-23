@@ -192,16 +192,14 @@
                                                     {% with period=forloop.counter %}
                                                         <tr>
                                                             <td>{{ period }}</td>
-                                                            {% with interest=loan_amount|mul:interest_rate|div:1200 %}
-                                                                {% with principal=loan_amount|div:term %}
-                                                                    <td>₱{{ principal|floatformat:2|intcomma }}</td>
-                                                                    <td>₱{{ interest|floatformat:2|intcomma }}</td>
-                                                                    <td>₱{{ payment|floatformat:2|intcomma }}</td>
-                                                                    <td>{% if loan.loan_disbursement_officer_remarks %}{{ loan.loan_disbursement_officer_remarks.disbursement_date|add_months:period }}{% else %}Pending Disbursement{% endif %}</td>
-                                                                    {% with payments_made=payment|mul:period %}
-                                                                        {% with remaining_balance=total_amount|sub:payments_made %}
-                                                                            <td>₱{{ remaining_balance|floatformat:2|intcomma }}</td>
-                                                                        {% endwith %}
+                                                            {% with principal=loan_amount|div:term interest=loan_amount|mul:interest_rate|div:100 %}
+                                                                <td>₱{{ principal|floatformat:2|intcomma }}</td>
+                                                                <td>₱{{ interest|floatformat:2|intcomma }}</td>
+                                                                <td>₱{{ payment|floatformat:2|intcomma }}</td>
+                                                                <td>{% if loan.loan_disbursement_officer_remarks %}{{ loan.loan_disbursement_officer_remarks.disbursement_date|add_months:period }}{% else %}Pending Disbursement{% endif %}</td>
+                                                                {% with payments_made=payment|mul:period %}
+                                                                    {% with remaining_balance=total_amount|sub:payments_made %}
+                                                                        <td>₱{{ remaining_balance|floatformat:2|intcomma }}</td>
                                                                     {% endwith %}
                                                                 {% endwith %}
                                                             {% endwith %}
