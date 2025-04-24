@@ -24,7 +24,7 @@ loglevel = "info"
 # Process naming
 proc_name = "loan_prediction_app"
 
-# Preload app to avoid loading ML models multiple times
+# Preload app to avoid loading trained models multiple times
 preload_app = True
 
 # SSL Configuration (if needed)
@@ -33,7 +33,7 @@ preload_app = True
 
 def on_starting(server):
     """Initialize the application before workers are spawned"""
-    server.log.info("Initializing application and ML models...")
+    server.log.info("Initializing application and trained models...")
 
 def post_fork(server, worker):
     """Reduce memory usage after forking"""

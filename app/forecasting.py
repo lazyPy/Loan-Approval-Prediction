@@ -14,7 +14,6 @@ import os
 import joblib
 from math import sqrt
 from django.db.models import Sum
-from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Borrower, LoanDisbursementOfficerRemarks, LoanDetails
 import random
@@ -74,7 +73,7 @@ def resample_data(df, freq):
             raise ValueError(f"Frequency must be 'W', 'M', or 'Q', got {freq}")
         
         # Fill any missing values using forward fill
-        resampled_df.fillna(method='ffill', inplace=True)
+        resampled_df = resampled_df.ffill()
         
         return resampled_df
     except Exception as e:
@@ -178,21 +177,21 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=Non
     future_preds_scaled = scaler.inverse_transform(scaled_features)[:, 0]
     
     # Get the last date from our data or use today if empty
-    last_date = timezone.now().date()
+    last_date = datetime.now().date()
     if df is not None and len(df) > 0:
         last_date = df.index[-1]
     
     # Create future dates with correct frequency strings
     if freq == 'W':
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), 
+        future_dates = pd.date_range(start=last_date + timedelta(days=1), 
                                    periods=n_steps, 
                                    freq='W-FRI')  # Weekly on Friday
     elif freq == 'M':
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), 
+        future_dates = pd.date_range(start=last_date + timedelta(days=1), 
                                    periods=n_steps, 
                                    freq='MS')  # Month Start
     elif freq == 'Q':
-        future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), 
+        future_dates = pd.date_range(start=last_date + timedelta(days=1), 
                                    periods=n_steps, 
                                    freq='QS')  # Quarter Start
     else:
@@ -204,7 +203,7 @@ def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=Non
     
     return forecast_df
 
-def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/ml_models'):
+def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/trained_models'):
     if not os.path.exists(models_dir):
         os.makedirs(models_dir)
     
@@ -218,7 +217,7 @@ def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/m
         f.write(f"Sequence Length: {seq_length}\n")
         f.write(f"Features: {','.join(features_list)}")
 
-def load_saved_model(freq, models_dir='app/ml_models'):
+def load_saved_model(freq, models_dir='app/trained_models'):
     """Load saved model and associated files"""
     try:
         model_path = f'{models_dir}/lstm_{freq.lower()}_model.keras'
@@ -242,7 +241,7 @@ def get_combined_loan_data():
     """Combine historical data from Sales_Data.csv with recent completed loans"""
     try:
         # Load historical data
-        historical_df = pd.read_csv('app/ml_models/Sales_Data.csv')
+        historical_df = pd.read_csv('app/trained_models/Sales_Data.csv')
         historical_df['Date'] = pd.to_datetime(historical_df['Date'])
         # Convert Sales column to numeric, removing any currency formatting
         historical_df['Sales'] = historical_df['Sales'].astype(str).str.replace(',', '').astype(float)
@@ -280,7 +279,7 @@ def get_combined_loan_data():
         print("Falling back to recent loans only")
         return get_recent_completed_loans()
 
-def train_and_save_models(models_dir='app/ml_models'):
+def train_and_save_models(models_dir='app/trained_models'):
     """Train and save forecasting models"""
     df = get_combined_loan_data()
     results = {}
@@ -326,11 +325,11 @@ def train_and_save_models(models_dir='app/ml_models'):
             freq_to_use = freq_map.get(freq, freq)
             
             if freq == 'W':
-                future_dates = pd.date_range(start=last_date + pd.Timedelta(weeks=1), periods=config['forecast_steps'], freq=freq_to_use)
+                future_dates = pd.date_range(start=last_date + timedelta(weeks=1), periods=config['forecast_steps'], freq=freq_to_use)
             elif freq == 'M':
-                future_dates = pd.date_range(start=last_date + pd.Timedelta(days=31), periods=config['forecast_steps'], freq=freq_to_use)
+                future_dates = pd.date_range(start=last_date + timedelta(days=31), periods=config['forecast_steps'], freq=freq_to_use)
             elif freq == 'Q':
-                future_dates = pd.date_range(start=last_date + pd.Timedelta(days=92), periods=config['forecast_steps'], freq=freq_to_use)
+                future_dates = pd.date_range(start=last_date + timedelta(days=92), periods=config['forecast_steps'], freq=freq_to_use)
             
             forecast = pd.DataFrame({
                 'Date': future_dates,
@@ -466,18 +465,18 @@ def get_forecast_data(freq):
             # Only perform decomposition if we have enough data points
             if len(resampled_df) >= period * 2:
                 decomposition = seasonal_decompose(resampled_df['Sales'], model='additive', period=period)
-                trend = decomposition.trend.fillna(method='bfill').fillna(method='ffill').values.tolist()
-                seasonal = decomposition.seasonal.fillna(method='bfill').fillna(method='ffill').values.tolist()
-                residual = decomposition.resid.fillna(method='bfill').fillna(method='ffill').values.tolist()
+                trend = decomposition.trend.bfill().ffill().values.tolist()
+                seasonal = decomposition.seasonal.bfill().ffill().values.tolist()
+                residual = decomposition.resid.bfill().ffill().values.tolist()
             else:
                 # If not enough data, use simple moving averages
-                trend = resampled_df['Sales'].rolling(window=min(len(resampled_df), 3)).mean().fillna(method='bfill').fillna(method='ffill').values.tolist()
+                trend = resampled_df['Sales'].rolling(window=min(len(resampled_df), 3)).mean().bfill().ffill().values.tolist()
                 seasonal = [0] * len(dates)  # No seasonal component
                 residual = (resampled_df['Sales'] - pd.Series(trend, index=resampled_df.index)).values.tolist()
         except Exception as e:
             print(f"Error in decomposition: {e}")
             # Fallback to simple trend
-            trend = resampled_df['Sales'].rolling(window=min(len(resampled_df), 3)).mean().fillna(method='bfill').fillna(method='ffill').values.tolist()
+            trend = resampled_df['Sales'].rolling(window=min(len(resampled_df), 3)).mean().bfill().ffill().values.tolist()
             seasonal = [0] * len(dates)
             residual = [0] * len(dates)
         

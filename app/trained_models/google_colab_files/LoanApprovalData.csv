@@ -1,0 +1,301 @@
+Age,ResidencyAndCitizenship,SourceOfFunds,Employment Status&Nature of Business,VehiclePrice,DownPayment,AmountApproved,TotalIncome,TotalExpenses,NetDisposal,Terms,MonthlyAmortization,Affordability,CreditRiskAssessment,CompleteDocuments,Verified,Loan Status
+37,Resident Filipino Citizen,Salary,Employee,150000,0.2,120000,112400,12000,70280,18,8467,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Income from Business,Registered Business,370260,0.2,296208,72000,18000,37800,24,16786,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Salary,Employee,145114,0.2,116091.2,83586.58,19000,45210.606,36,4967,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary ,Employee,260000,0.2,208000,38324.02,13000,17726.814,24,11787,Yes,Low Risk,Yes,Yes,Approved
+50,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,70000,12000,40600,24,11334,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Income from Business,Registered Business,143100,0.2,114480,30000,10500,13650,36,4898,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Income from Business,Registered Business,375372.475,0.2,300297.98,71000,20000,35700,30,14515,Yes,Low Risk,Yes,Yes,Approved
+30,Resident Filipino Citizen,Income from Business,Registered Business,299178.3375,0.2,239342.67,70000,12000,40600,24,13563,Yes,Low Risk,No,Yes,Declined
+38,Resident Filipino Citizen,Income from Business,Registered Business,82574,0.2,66059.2,56000,26000,21000,12,6496,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,29950,8000,15365,12,9834,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Salary,Employee,568750,0.2,455000,51500,17000,24150,36,19464,Yes,Low Risk,Yes,Yes,Approved
+52,Resident Filipino Citizen,Salary,Employee,275000,0.2,220000,41056,14000,18939.2,30,10634,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Income from Business,Registered Business,198531.25,0.2,158825,169000,15000,107800,12,15618,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,393750,0.2,315000,83000,28000,38500,30,15225,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Salary,Employee,649286.875,0.2,519429.5,26565.44,6000,14395.808,36,22221,No,Low Risk,Yes,Yes,Declined
+48,Resident Filipino Citizen,Income from Business,Registered Business,299000,0.2,239200,44500,11595,23033.5,24,13555,Yes,Low Risk,Yes,Yes,Approved
+27,Resident Filipino Citizen,Salary,Employee,937500,0.2,750000,100000,15000,59500,24,42500,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,130000,20000,77000,24,5667,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary,Employee,540263.2,0.2,432210.56,20258,5000,10680.6,24,24492,No,Low Risk,Yes,Yes,Declined
+31,Resident Filipino Citizen,Police,Employee,403000,0.2,322400,65562.94,29500,25244.058,24,18270,Yes,High Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,260000,0.2,208000,53800,15000,27160,24,11787,Yes,Low Risk,Yes,Yes,Approved
+58,Resident Filipino Citizen,Income from Business,Registered Business,386878.8,0.2,309503.04,78500,17500,42700,24,17539,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Salary,Employee,323003.7,0.2,258402.96,36530.06,15000,15071.042,24,14643,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Salary,Employee,262500,0.2,210000,36530.06,15000,15071.042,12,20650,No,Low Risk,Yes,Yes,Declined
+34,Resident Filipino Citizen,Salary,Employee,400000,0.2,320000,47500,20000,19250,36,13689,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Salary,Employee,597599.375,0.2,478079.5,63188,24000,27431.6,36,20452,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Salary,Employee,493750,0.2,395000,81000,17000,44800,30,19092,Yes,Low Risk,Yes,Yes,Approved
+25,Resident Filipino Citizen,Income from Business,Registered Business,418020,0.2,334416,65000,15000,35000,24,18951,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Income from Business,Registered Business,462500,0.2,370000,100000,36000,44800,36,15828,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,45950,9000,25865,12,14750,Yes,Low Risk,Yes,Yes,Approved
+27,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,41000,11000,21000,12,14750,Yes,Low Risk,Yes,Yes,Approved
+55,Resident Filipino Citizen,Salary,Employee,195000,0.2,156000,52508,14000,26955.6,24,8840,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,37075,13000,16852.5,12,9834,Yes,Low Risk,Yes,Yes,Approved
+60,Resident Filipino Citizen,Income from Business,Registered Business,566074.1125,0.2,452859.29,191000,52000,97300,24,25663,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Income from Business,Registered Business,146280,0.2,117024,80000,14000,46200,36,5007,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,312000,0.2,249600,307993,60000,173595.1,12,24544,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,500000,0.2,400000,89000,22000,46900,12,39334,Yes,Low Risk,Yes,Yes,Approved
+56,Resident Filipino Citizen,Salary,Employee,700000,0.2,560000,65000,16000,34300,24,31734,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,54000,8000,32200,12,9834,Yes,Low Risk,Yes,Yes,Approved
+24,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,50000,8000,29400,24,8500,Yes,Low Risk,Yes,Yes,Approved
+45,Resident Filipino Citizen,Salary,Employee,100000,0.2,80000,149000,33000,81200,12,7867,Yes,Low Risk,Yes,Yes,Approved
+31,Resident Filipino Citizen,Income from Business,Registered Business,487500,0.2,390000,97505,26100,49983.5,24,22100,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Salary,Employee,200000,0.2,160000,34711.98,17700,11908.386,24,9067,Yes,Low Risk,Yes,Yes,Approved
+49,Resident Filipino Citizen,Salary,Employee,243427.5,0.2,194742,53100,40239,9002.7,12,19150,No,Low Risk,Yes,Yes,Declined
+33,Resident Filipino Citizen,Salary,Employee,399947.5,0.2,319958,62600,40329,15589.7,24,18131,No,Low Risk,Yes,Yes,Declined
+35,Resident Filipino Citizen,Salary,Employee,425000,0.2,340000,104000,25000,55300,12,33434,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Income from Business,Registered Business,131175,0.2,104940,97000,12000,59500,24,5947,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,681250,0.2,545000,78000,14000,44800,36,23314,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Income from Business,Registered Business,133490,0.2,106792,176200,55000,84840,12,10502,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,24500,6500,12600,24,11334,Yes,Low Risk,Yes,Yes,Approved
+30,Resident Filipino Citizen,Income from Business,Registered Business,306250,0.2,245000,300000,35000,185500,24,13884,Yes,Low Risk,Yes,Yes,Approved
+61,Resident Filipino Citizen,Salary,Employee,437500,0.2,350000,30910.32,10000,14637.224,36,14973,No,Low Risk,Yes,Yes,Declined
+29,Resident Filipino Citizen,Salary,Employee,362500,0.2,290000,35000,13000,15400,24,16434,No,Low Risk,Yes,Yes,Declined
+44,Resident Filipino Citizen,Income from Business,Registered Business,133490,0.2,106792,85000,41926,30151.8,12,10502,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,387500,0.2,310000,46000,13000,23100,24,17567,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,145114,0.2,116091.2,50137.78,22000,19696.446,36,4967,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Income from Business,Registered Business,262500,0.2,210000,50000,11000,27300,24,11900,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,450000,0.2,360000,40000,12000,19600,36,15400,Yes,Low Risk,Yes,Yes,Approved
+51,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,45000,13000,22400,12,9834,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary,Employee,481250,0.2,385000,46410,16000,21287,36,16470,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Income from Business,Registered Business,199480,0.2,159584,170000,72000,68600,12,15693,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,593750,0.2,475000,54000,17000,25900,36,20320,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Income from Business,Registered Business,275000,0.2,220000,39000,11000,19600,24,12467,Yes,Low Risk,Yes,Yes,Approved
+54,Resident Filipino Citizen,Salary,Employee,405955.5125,0.2,324764.41,30486.175,6000,17140.3225,24,18404,No,Low Risk,Yes,Yes,Declined
+38,Resident Filipino Citizen,Salary,Employee,268750,0.2,215000,50322,18000,22625.4,24,12184,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Income from Business,Registered Business,250000,0.2,200000,67000,24000,30100,12,19667,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,100000,15000,59500,6,27250,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary,Employee,468000,0.2,374400,120000,15000,73500,36,16016,Yes,Low Risk,Yes,Yes,Approved
+27,Resident Filipino Citizen,Salary,Employee,387500,0.2,310000,52000,14000,26600,36,13262,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Income from Business,Registered Business,333853.75,0.2,267083,90200,11000,55440,24,15135,Yes,Low Risk,Yes,Yes,Approved
+53,Resident Filipino Citizen,Salary,Employee,78042.5,0.2,62434,42181.09,10500,22176.763,36,2671,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,60000,10000,35000,24,8500,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Salary,Employee,68050,0.2,54440,106340.906,26000,56238.6342,12,5354,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Salary,Employee,481250,0.2,385000,49633,25000,17243.1,24,21817,No,Low Risk,Yes,Yes,Declined
+62,Resident Filipino Citizen,Salary,Employee,269718.75,0.2,215775,87000,17000,49000,24,12228,Yes,Low Risk,Yes,Yes,Approved
+48,Resident Filipino Citizen,Income from Business,Registered Business,481250,0.2,385000,170000,26400,100520,36,16470,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Income from Business,Registered Business,201041.25,0.2,160833,300000,35000,185500,24,9114,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,533070.3125,0.2,426456.25,26472.19,6000,14330.533,36,18243,No,Low Risk,Yes,Yes,Declined
+35,Resident Filipino Citizen,Support From Relative,Unemployed,87500,0.2,70000,38100,9160,20258,12,6884,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Income from Business,Registered Business,400000,0.2,320000,150000,41000,76300,24,18134,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Salary,Employee,481250,0.2,385000,55565,10000,31895.5,24,21817,Yes,Low Risk,Yes,Yes,Approved
+30,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,43263,13000,21184.1,18,7056,Yes,Low Risk,Yes,Yes,Approved
+49,Resident Filipino Citizen,Salary,Employee,159635.625,0.2,127708.5,75005,18000,39903.5,12,12559,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Salary,Employee,119674,0.2,95739.2,56655,21000,24958.5,36,4096,Yes,Low Risk,Yes,Yes,Approved
+45,Resident Filipino Citizen,Salary,Employee,134947.5,0.2,107958,47894,16000,22325.8,24,6118,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,121750,20000,71225,24,11334,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Salary,Employee,312500,0.2,250000,97833,20500,54133.1,24,14167,Yes,Low Risk,Yes,Yes,Approved
+53,Resident Filipino Citizen,Salary,Employee,530490,0.2,424392,80000,50847,20407.1,36,18155,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,49175.15,28580,14416.605,12,14750,No,Low Risk,Yes,Yes,Declined
+40,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,67000,18000,34300,12,14750,Yes,Low Risk,Yes,Yes,Approved
+61,Resident Filipino Citizen,Income from Business,Registered Business,75000,0.2,60000,52000,15000,25900,12,5900,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,82574,0.2,66059.2,140000,20000,84000,24,3744,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,85000,26000,41300,12,9834,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Salary,Employee,262500,0.2,210000,34965,7900,18945.5,24,11900,Yes,Low Risk,Yes,Yes,Approved
+53,Resident Filipino Citizen,Income from Business,Registered Business,273000,0.2,218400,80000,21000,41300,24,12376,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,69318.2,23000,32422.74,12,9834,Yes,Low Risk,Yes,Yes,Approved
+44,Resident Filipino Citizen,Income from Business,Registered Business,262500,0.2,210000,60000,13000,32900,18,14817,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Income from Business,Registered Business,262500,0.2,210000,115000,21000,65800,24,11900,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Income from Business,Registered Business,390000,0.2,312000,70000,14500,38850,24,17680,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Salary,Employee,280322.5,0.2,224258,46000,16000,21000,24,12708,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen ,Income from Business,Registered Business,195204.375,0.2,156163.5,167000,93313,51580.9,12,15357,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary,Employee,375000,0.2,300000,54899.77,15000,27929.839,12,29500,No,Low Risk,Yes,Yes,Declined
+43,Resident Filipino Citizen,Salary,Employee,468750,0.2,375000,70000,13000,39900,36,16042,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary ,Employee,638539.875,0.2,510831.9,66015.7,18000,33610.99,12,50232,No,Low Risk,Yes,Yes,Declined
+28,Resident Filipino Citizen,Salary ,Employee,262500,0.2,210000,64000,16000,33600,12,20650,Yes,Low Risk,Yes,Yes,Approved
+77,Resident Filipino Citizen,Salary ,Employee,287500,0.2,230000,45000,13000,22400,24,13034,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary ,Employee,187500,0.2,150000,75300,24500,35560,12,14750,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary ,Employee,125000,0.2,100000,158000,25000,93100,15,8167,Yes,Low Risk,Yes,Yes,Approved
+61,Resident Filipino Citizen ,Salary ,Employee ,512500,0.2,410000,58000,28500,20650,24,23234,No,Low Risk,Yes,Yes,Declined
+34,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,252200,31000,154840,12,9834,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary ,Employee,187500,0.2,150000,99547.75,57000,29783.425,12,14750,Yes,Low Risk,Yes,Yes,Approved
+20,Resident Filipino Citizen,Salary ,Employee,125000,0.2,100000,66000,28000,26600,12,9834,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Salary ,Employee,225000,0.2,180000,83991,16000,47593.7,24,10200,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Income from Business,Registered Business,214606.675,0.2,171685.34,67401.315,20000,33180.9205,24,9729,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Salary ,Employee,187500,0.2,150000,155320.46,65906,62590.122,24,8500,Yes,Low Risk,Yes,Yes,Approved
+52,Resident Filipino Citizen,Salary ,Employee,375000,0.2,300000,42550,18000,17185,12,29500,No,Low Risk,Yes,No,Declined
+57,Resident Filipino Citizen,Salary ,Employee,198855,0.2,159084,51690.81,17000,24283.567,12,15644,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary ,Employee,112500,0.2,90000,86000,18000,47600,12,8850,Yes,Low Risk,Yes,Yes,Approved
+45,Resident Filipino Citizen,Income from Business,Registered Business,187500,0.2,150000,173700,15000,111090,12,14750,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary ,Employee,226982.0875,0.2,181585.67,39047.64,14000,17533.348,24,10290,Yes,Low Risk,Yes,Yes,Approved
+30,Resident Filipino Citizen,Salary ,Employee,187500,0.2,150000,43000,12000,21700,12,14750,Yes,Low Risk,Yes,Yes,Approved
+25,Resident Filipino Citizen,Income from Business,Registered Business,150000,0.2,120000,90000,38000,36400,12,11800,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary ,Employee,375000,0.2,300000,59224,28000,21856.8,30,14500,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary ,Employee,1305645,0.2,1044516,64837,26000,27185.9,24,59190,No,Low Risk,Yes,Yes,Declined
+31,Resident Filipino Citizen,Salary ,Employee,198855,0.2,159084,86446,34812,36143.8,12,15644,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary ,Employee,646224.375,0.2,516979.5,38123,18000,14086.1,36,22116,No,Low Risk,Yes,Yes,Declined
+42,Resident Filipino Citizen,Income from Business,Registered Business,377995.225,0.2,302396.18,70000,16000,37800,24,17136,Yes,Low Risk,No,Yes,Declined
+46,Resident Filipino Citizen,Salary ,Employee,455930.625,0.2,364744.5,152199,38966,79263.1,36,15603,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary ,Employee,150000,0.2,120000,211500,36000,122850,12,11800,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary ,Employee,612500,0.2,490000,143217,43000,70151.9,24,27767,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Income from Business,Registered Business,375000,0.2,300000,99450,32400,46935,24,17000,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Salary ,Employee,153170,0.2,122536,99673,22800,53811.1,36,5242,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Salary ,Employee,125000,0.2,100000,86446,34812,36143.8,12,9834,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary ,Employee,250000,0.2,200000,56374.14,16000,28261.898,12,19667,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary ,Employee,119674,0.2,95739.2,58050,28000,21035,36,4096,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary ,Employee,186743.125,0.2,149394.5,96996.89,26000,49697.823,18,10541,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Salary ,Employee,187500,0.2,150000,57902.12,24000,23731.484,12,14750,Yes,Low Risk,Yes,Yes,Approved
+24,Resident Filipino Citizen,Income from Business,Registered Business,267135,0.2,213708,90000,21500,47950,24,12111,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Income from Business,Registered Business,187500,0.2,150000,100000,36000,44800,12,14750,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Salary ,Employee,468000,0.2,374400,41600,14000,19320,36,16016,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,198855,0.2,159084,45672,39145,4568.9,12,15644,No,Low Risk,Yes,Yes,Declined
+37,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,82341,42367,27981.8,12,14750,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Income from Business,Registered Business,150000,0.2,120000,59876,39876,14000,12,11800,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Salary,Employee,228103.75,0.2,182483,70456,46432,16816.8,24,10341,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Income from Business,Registered Business,187500,0.2,150000,92134,35980,39307.8,12,14750,Yes,Low Risk,Yes,Yes,Approved
+31,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,41280,38245,2124.5,18,10584,No,Low Risk,Yes,Yes,Declined
+54,Resident Filipino Citizen,Salary,Employee,325000,0.2,260000,75019,41057,23773.4,24,14734,Yes,Low Risk,Yes,Yes,Approved
+65,Resident Filipino Citizen,Salary,Employee,281250,0.2,225000,53489,43890,6719.3,24,12750,No,Low Risk,Yes,Yes,Declined
+34,Resident Filipino Citizen,Salary,Employee,218750,0.2,175000,88675,37356,35923.3,24,9917,Yes,Low Risk,Yes,Yes,Approved
+47,Resident Filipino Citizen,Income from Business,Registered Business,603785,0.2,483028,64200,44123,14053.9,12,47498,No,Low Risk,Yes,Yes,Declined
+33,Resident Filipino Citizen,Income from Business,Registered Business,399322.5,0.2,319458,90423,39777,35452.2,24,18103,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Salary,Employee,201197.5,0.2,160958,47512,36290,7855.4,24,9121,No,Low Risk,Yes,Yes,Declined
+40,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,65789,37125,20064.8,12,14750,Yes,Low Risk,Yes,No,Declined
+52,Resident Filipino Citizen,Salary,Employee,618750,0.2,495000,55640,40450,10633,24,28050,No,Low Risk,Yes,Yes,Declined
+51,Resident Filipino Citizen,Income from Business,Registered Business,187500,0.2,150000,99594,36882,43898.4,18,10584,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Income from Business,Registered Business,476541.25,0.2,381233,78102,35640,29723.4,24,21604,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,54874,41789,9159.5,24,11334,No,Low Risk,Yes,Yes,Declined
+40,Resident Filipino Citizen,Income from Business,Registered Business,150000,0.2,120000,61250,40029,14854.7,24,6800,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary,Employee,128154,0.2,102523.2,84350,38476,32111.8,36,4386,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,80904,39599,28913.5,24,8500,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,49234,42200,4923.8,12,14750,No,Low Risk,Yes,Yes,Declined
+50,Resident Filipino Citizen,Salary,Employee,500000,0.2,400000,56702,45002,8190,24,22667,No,Low Risk,Yes,Yes,Declined
+58,Resident Filipino Citizen,Salary,Employee,275000,0.2,220000,66123,47333,13153,12,21634,No,Low Risk,Yes,Yes,Declined
+34,Resident Filipino Citizen,Salary,Employee,127094,0.2,101675.2,73992,44871,20384.7,36,4350,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,92875,38560,38020.5,24,5667,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Income from Business,Registered Business,212500,0.2,170000,60437,42780,12359.9,24,9634,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Salary,Employee,312500,0.2,250000,68540,41650,18823,18,17639,Yes,Low Risk,Yes,Yes,Approved
+61,Resident Filipino Citizen,Salary,Employee,456433.75,0.2,365147,45890,37890,5600,12,35907,No,Low Risk,Yes,Yes,Declined
+55,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,85227,47890,26135.9,12,9834,Yes,Low Risk,Yes,Yes,Approved
+41,Resident Filipino Citizen,Salary,Employee,206250,0.2,165000,97003,34123,44016,24,9350,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Income from Business,Registered Business,275000,0.2,220000,52112,32540,13700.4,24,12467,Yes,Low Risk,Yes,Yes,Approved
+49,Resident Filipino Citizen,Income from Business,Registered Business,187500,0.2,150000,48567,36480,8460.9,18,10584,No,Low Risk,Yes,Yes,Declined
+44,Resident Filipino Citizen,Salary,Employee,260000,0.2,208000,81335,42400,27254.5,18,14676,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary,Employee,642845,0.2,514276,69994,48555,15007.3,36,22000,No,Low Risk,Yes,Yes,Declined
+47,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,83469,43450,28013.3,12,9834,Yes,Low Risk,Yes,Yes,Approved
+54,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,40872,20000,14610.4,12,14750,No,Low Risk,Yes,Yes,Declined
+43,Resident Filipino Citizen,Salary,Employee,832050.625,0.2,665640.5,72545,35000,26281.5,24,37720,No,Low Risk,Yes,Yes,Declined
+31,Resident Filipino Citizen,Salary,Employee,561250,0.2,449000,91208,19500,50195.6,24,25444,Yes,Low Risk,Yes,Yes,Approved
+61,Resident Filipino Citizen,Salary,Employee,350000,0.2,280000,57431,13000,31101.7,24,15867,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Income from Business,Registered Business,475000,0.2,380000,96128,42500,37539.6,36,16256,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary,Employee,53530,0.2,42824,44370,20000,17059,12,4212,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary,Employee,280353.75,0.2,224283,76284,20000,39398.8,24,12710,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Salary,Employee,312500,0.2,250000,50642,17000,23549.4,36,10695,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,462500,0.2,370000,63880,14000,34916,24,20967,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary,Employee,103482.5,0.2,82786,93105,15000,54673.5,36,3542,Yes,Low Risk,Yes,Yes,Approved
+66,Resident Filipino Citizen,Income from Business,Registered Business,112500,0.2,90000,66709,20000,32696.3,12,8850,Yes,Low Risk,Yes,Yes,Approved
+51,Resident Filipino Citizen,Salary,Employee,199416.25,0.2,159533,41987,26000,11190.9,18,11256,No,Low Risk,Yes,Yes,Declined
+34,Resident Filipino Citizen,Income from Business,Registered Business,126034,0.2,100827.2,74405,44900,20653.5,36,4314,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,58362,17500,28603.4,24,8500,Yes,Low Risk,Yes,Yes,Approved
+34,Resident Filipino Citizen,Salary,Employee,343750,0.2,275000,65978,17500,33934.6,30,13292,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,99123,22000,53986.1,12,14750,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Income from Business,Registered Business,277917.5,0.2,222334,86720,16000,49504,12,21863,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Salary,Employee,312500,0.2,250000,47856,14000,23699.2,18,17639,Yes,Low Risk,Yes,Yes,Approved
+35,Resident Filipino Citizen,Income from Business,Registered Business,429318.825,0.2,343455.06,81042,31000,35029.4,36,14693,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Income from Business,Registered Business,475000,0.2,380000,59232,46100,9192.4,36,16256,No,Low Risk,Yes,Yes,Declined
+46,Resident Filipino Citizen,Income from Business,Registered Business,280322.5,0.2,224258,44298,22000,15608.6,24,12708,Yes,Low Risk,Yes,Yes,Approved
+72,Resident Filipino Citizen,Income from Business,Registered Business,62500,0.2,50000,70814,49309,15053.5,12,4917,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Salary,Employee,225000,0.2,180000,95438,5500,62956.6,24,10200,Yes,Low Risk,Yes,Yes,Approved
+25,Resident Filipino Citizen,Salary,Employee,393750,0.2,315000,50890,17000,23723,36,13475,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,64130,20000,30891,12,14750,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Income from Business,Registered Business,201197.5,0.2,160958,82578,18500,44854.6,24,9121,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Salary,Employee,404578.125,0.2,323662.5,40209,21000,13446.3,36,13846,No,Low Risk,Yes,Yes,Declined
+68,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,91994,8000,58795.8,18,10584,Yes,Low Risk,Yes,Yes,Approved
+38,Resident Filipino Citizen,Salary,Employee,135376.25,0.2,108301,72380,34500,26516,12,10650,Yes,Low Risk,Yes,Yes,Approved
+36,Resident Filipino Citizen,Salary,Employee,1021178.338,0.2,816942.67,87654,18000,48757.8,36,34947,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Salary,Employee,350000,0.2,280000,49764,40000,6834.8,24,15867,No,Low Risk,Yes,Yes,Declined
+33,Resident Filipino Citizen,Income from Business,Registered Business,243750,0.2,195000,61780,28000,23646,24,11050,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,77921,25000,37044.7,12,9834,Yes,Low Risk,Yes,Yes,Approved
+54,Resident Filipino Citizen,Salary,Employee,457021.25,0.2,365617,53140,37000,11298,18,25797,No,Low Risk,Yes,Yes,Declined
+65,Resident Filipino Citizen,Salary,Employee,243750,0.2,195000,96703,50000,32692.1,24,11050,Yes,Low Risk,Yes,Yes,Approved
+47,Resident Filipino Citizen,Salary,Employee,350000,0.2,280000,90046,10000,56032.2,36,11978,Yes,Low Risk,Yes,Yes,Approved
+47,Resident Filipino Citizen,Salary,Employee,456250,0.2,365000,69200,21800,33180,24,20684,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,442000,0.2,353600,42840,16000,18788,30,17091,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Income from Business,Registered Business,150000,0.2,120000,48996,15000,23797.2,12,11800,Yes,Low Risk,Yes,Yes,Approved
+51,Resident Filipino Citizen,Income from Business,Registered Business,62500,0.2,50000,88987,35000,37790.9,12,4917,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Income from Business,Registered Business,312500,0.2,250000,45619,19000,18633.3,24,14167,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,83542,16000,47279.4,12,14750,Yes,Low Risk,Yes,Yes,Approved
+44,Resident Filipino Citizen,Salary,Employee,199885,0.2,159908,57833,11700,32293.1,18,11283,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Income from Business,Registered Business,212500,0.2,170000,76289,38000,26802.3,18,11995,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary,Employee,82574,0.2,66059.2,41129,19000,15490.3,36,2826,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,500000,0.2,400000,80390,25000,38773,36,17112,Yes,Low Risk,Yes,Yes,Approved
+44,Resident Filipino Citizen,Income from Business,Registered Business,79367.5,0.2,63494,66428,14500,36349.6,24,3598,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Income from Business,Registered Business,350000,0.2,280000,52200,50413,1250.9,12,27534,No,Low Risk,Yes,Yes,Declined
+44,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,97260,36000,42882,18,10584,Yes,Low Risk,Yes,Yes,Approved
+57,Resident Filipino Citizen,Salary,Employee,287500,0.2,230000,46115,13000,23180.5,36,9839,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Income from Business,Registered Business,375000,0.2,300000,71074,18000,37151.8,24,17000,Yes,Low Risk,Yes,Yes,Approved
+74,Resident Filipino Citizen,Salary,Employee,159635.625,0.2,127708.5,85913,12500,51389.1,12,12559,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,54578,12500,29454.6,12,14750,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Income from Business,Registered Business,275000,0.2,220000,44670,24000,14469,24,12467,Yes,Low Risk,No,Yes,Declined
+56,Resident Filipino Citizen,Income from Business,Registered Business,481250,0.2,385000,80860,27000,37702,36,16470,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Income from Business,Registered Business,457118.8,0.2,365695.04,98442,29000,48609.4,24,20723,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Income from Business,Registered Business,399947.5,0.2,319958,40780,29000,8246,24,18131,No,Low Risk,Yes,Yes,Declined
+29,Resident Filipino Citizen,Income from Business,Registered Business,398156.25,0.2,318525,63541,35888,19357.1,24,18050,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,59888,50000,6921.6,12,19667,No,Low Risk,Yes,Yes,Declined
+45,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,58201,17000,28840.7,12,19667,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Income from Business,Registered Business,104714.75,0.2,83771.8,48563,24000,17194.1,24,4748,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Salary,Employee,218750,0.2,175000,64877,10000,38413.9,24,9917,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Salary,Employee,460806.875,0.2,368645.5,73605,183400,-76856.5,24,20890,No,Low Risk,Yes,Yes,Declined
+56,Resident Filipino Citizen,Income from Business,Registered Business,250000,0.3,175000,67140,40000,18998,24,9917,Yes,Low Risk,Yes,No,Declined
+27,Resident Filipino Citizen,Salary,Employee,1014527.288,0.2,811621.83,47512,18000,20658.4,36,34720,No,Low Risk,Yes,Yes,Declined
+69,Resident Filipino Citizen,Salary,Employee,397135,0.2,317708,65789,35000,21552.3,24,18004,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Salary,Employee,437500,0.2,350000,55640,7000,34048,30,16917,Yes,Low Risk,Yes,Yes,Approved
+31,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,54437.5,24000,21306.25,12,9834,Yes,Low Risk,Yes,Yes,Approved
+23,Resident Filipino Citizen,Income from Business,Registered Business,430265.625,0.2,344212.5,84306.34,27000,40114.438,36,14725,Yes,Low Risk,Yes,Yes,Approved
+55,Resident Filipino Citizen,Salary,Employee,240697.5,0.2,192558,97731.5,31800,46152.05,24,10912,Yes,Low Risk,Yes,Yes,Approved
+55,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,216666,62000,108266.2,12,9834,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,375000,0.2,300000,75000,17000,40600,24,17000,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Salary,Employee,131175,0.2,104940,40394.94,12000,19876.458,24,5947,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Income from Business,Registered Business,212500,0.2,170000,80000,21000,41300,24,9634,Yes,Low Risk,Yes,Yes,Approved
+56,Resident Filipino Citizen,Income from Business,Registered Business,250000,0.2,200000,400000,36000,254800,24,11334,Yes,Low Risk,No,Yes,Declined
+49,Resident Filipino Citizen,Income from Business,Registered Business,300000,0.2,240000,45000,19000,18200,24,13600,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Salary,Employee,133692.5,0.2,106954,35500,11000,17150,24,6061,Yes,Low Risk,Yes,Yes,Approved
+45,Resident Filipino Citizen,Salary,Employee,468000,0.2,374400,33160.24,6000,19012.168,36,16016,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Income from Business,Registered Business,237500,0.2,190000,204200,17800,130480,24,10767,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Income from Business,Registered Business,153170,0.2,122536,158979,74900,58855.3,36,5242,Yes,Low Risk,Yes,Yes,Approved
+54,Resident Filipino Citizen,Income from Business,Registered Business,562500,0.2,450000,70000,31000,27300,30,21750,Yes,Low Risk,Yes,Yes,Approved
+65,Resident Filipino Citizen,Income from Business,Registered Business,450000,0.2,360000,83900,46100,26460,24,20400,Yes,Low Risk,Yes,Yes,Approved
+47,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,139600,54008,59914.4,12,9834,Yes,Low Risk,Yes,Yes,Approved
+47,Resident Filipino Citizen,Income from Business,Registered Business,218750,0.2,175000,515490.32,49309,326326.924,24,9917,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Salary,Employee,375000,0.2,300000,40471,10500,20979.7,36,12834,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Income from Business,Registered Business,187135,0.2,149708,60000,29000,21700,24,8484,Yes,Low Risk,Yes,Yes,Approved
+51,Resident Filipino Citizen,Salary,Employee,550000,0.2,440000,92128,21000,49789.6,24,24934,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,128000,18000,77000,12,9834,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Salary,Employee,225000,0.2,180000,90348,18300,50433.6,24,10200,Yes,Low Risk,Yes,Yes,Approved
+44,Resident Filipino Citizen,Militar,Employee,281250,0.2,225000,48164,9500,27064.8,24,12750,Yes,High Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Income from Business,Registered Business,375000,0.2,300000,237681,19000,153076.7,12,29500,Yes,Low Risk,Yes,Yes,Approved
+40,Resident Filipino Citizen,Salary,Employee,278735,0.2,222988,60488.75,16000,31142.125,18,15734,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Salary,Employee,189402.5,0.2,151522,43602.5,17000,18621.75,12,14900,Yes,Low Risk,Yes,Yes,Approved
+44,Resident Filipino Citizen,Income from Business,Registered Business,764313.4875,0.2,611450.79,266000,18000,173600,24,34649,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,83000,28000,38500,12,14750,Yes,Low Risk,Yes,Yes,Approved
+44,Resident Filipino Citizen,Salary,Employee,287500,0.2,230000,40967.06,19000,15376.942,24,13034,Yes,Low Risk,Yes,Yes,Approved
+57,Resident Filipino Citizen,Income from Business,Registered Business,134176.875,0.2,107341.5,128000,58500,48650,18,7574,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Income from Business,Registered Business,312500,0.2,250000,291727,52000,167808.9,24,14167,Yes,Low Risk,Yes,Yes,Approved
+74,Resident Filipino Citizen,Income from Business,Registered Business,333228.75,0.2,266583,120000,23000,67900,24,15107,Yes,Low Risk,Yes,Yes,Approved
+26,Resident Filipino Citizen,Salary,Employee,201197.5,0.2,160958,53600,20000,23520,24,9121,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Salary,Employee,171720,0.2,137376,91322,20000,49925.4,24,7785,Yes,Low Risk,Yes,Yes,Approved
+56,Resident Filipino Citizen,Income from Business,Registered Business,237500,0.2,190000,97500,33000,45150,24,10767,Yes,Low Risk,Yes,Yes,Approved
+33,Resident Filipino Citizen,Income from Business,Registered Business,200000,0.2,160000,44123,15000,20386.1,24,9067,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Income from Business,Registered Business,375000,0.2,300000,83029,24000,41320.3,18,21167,Yes,Low Risk,Yes,Yes,Approved
+29,Resident Filipino Citizen,Income from Business,Employee,122854,0.2,98283.2,57054.77,22000,24538.339,12,9665,Yes,Low Risk,Yes,Yes,Approved
+42,Resident Filipino Citizen,Salary,Employee,78175,0.2,62540,70000,14000,39200,12,6150,Yes,Low Risk,Yes,Yes,Approved
+45,Resident Filipino Citizen,Salary,Employee,280353.75,0.2,224283,236834.86,93000,100684.402,24,12710,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,28022,5000,16115.4,24,8500,Yes,Low Risk,Yes,Yes,Approved
+39,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,103000,40000,44100,12,9834,Yes,Low Risk,Yes,Yes,Approved
+46,Resident Filipino Citizen,Support From Relative,Unemployed,250000,0.2,200000,65000,21000,30800,12,19667,Yes,High Risk,Yes,Yes,Approved
+56,Resident Filipino Citizen,Income from Business,Registered Business,121794,0.2,97435.2,70000,13000,39900,36,4169,Yes,Low Risk,Yes,Yes,Approved
+27,Resident Filipino Citizen,Salary,Employee,187500,0.2,150000,66608.33,13000,37525.831,18,10584,Yes,Low Risk,Yes,Yes,Approved
+69,Resident Filipino Citizen,Salary,Employee,250000,0.2,200000,72915.46,22000,35640.822,30,9667,Yes,Low Risk,Yes,Yes,Approved
+32,Resident Filipino Citizen,Income from Business,Registered Business,375000,0.2,300000,66000,24500,29050,24,17000,Yes,Low Risk,Yes,Yes,Approved
+31,Resident Filipino Citizen,Income from Business,Registered Business,82574,0.2,66059.2,262110,107133,108483.9,36,2826,Yes,Low Risk,Yes,Yes,Approved
+23,Resident Filipino Citizen,Salary,Employee,125000,0.2,100000,53274.75,20000,23292.325,12,9834,Yes,Low Risk,Yes,Yes,Approved
+55,Resident Filipino Citizen,Salary,Employee,923375,0.2,738700,49000,13000,25200,36,31600,No,Low Risk,Yes,Yes,Declined
+55,Resident Filipino Citizen,Income from Business,Registered Business,222611.875,0.2,178089.5,159000,25000,93800,18,12566,Yes,Low Risk,Yes,Yes,Approved
+37,Resident Filipino Citizen,Income from Business,Registered Business,125000,0.2,100000,128000,18000,77000,12,9834,Yes,Low Risk,Yes,Yes,Approved
+28,Resident Filipino Citizen,Income from Business,Registered Business,161085,0.2,128868,69362.58,19000,35253.806,18,9093,Yes,Low Risk,Yes,Yes,Approved
+43,Resident Filipino Citizen,Income from Business,Registered Business,148294,0.2,118635.2,237681,19000,153076.7,36,5075,Yes,Low Risk,Yes,Yes,Approved
+56,Resident Filipino Citizen,Salary,Employee,375000,0.2,317208,75000,17000,40600,24,17000,Yes,Low Risk,Yes,Yes,Approved
+49,Resident Filipino Citizen,Salary,Employee,131175,0.2,150000,50994.94,19000,19876.458,24,5947,Yes,Low Risk,Yes,Yes,Approved
+59,Resident Filipino Citizen,Income from Business,Registered Business,212500,0.2,226050,70000,22500,41300,24,9634,Yes,Low Risk,Yes,Yes,Approved
+45,Resident Filipino Citizen,Income from Business,Registered Business,250000,0.2,100000,500000,27000,254800,24,11334,Yes,Low Risk,Yes,Yes,Approved

@@ -562,7 +562,7 @@ def predict_loan_approval(loan_data):
     """Make a prediction using the trained model"""
     try:
         # Load the model if it exists, otherwise use a simple rule-based approach
-        model_path = 'loan_approval_model.joblib'
+        model_path = 'app/trained_models/loan_approval_model.joblib'
         if os.path.exists(model_path):
             # Load the trained model
             model = joblib.load(model_path)
