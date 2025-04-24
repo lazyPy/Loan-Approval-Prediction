@@ -140,7 +140,6 @@ def train_lstm_model(X_train, y_train, X_test, y_test, epochs=100, batch_size=32
 
 
 def prepare_last_sequence(df, seq_length, feature_list):
-    """Prepare the last sequence for forecasting"""
     if len(df) < seq_length:
         return None
 
@@ -154,7 +153,6 @@ def prepare_last_sequence(df, seq_length, feature_list):
 
 
 def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=None):
-    """Generate future forecasts using the loaded model"""
     if last_sequence is None:
         return pd.DataFrame()
 
@@ -218,7 +216,6 @@ def save_model(model, scaler, freq, features_list, seq_length, models_dir='forec
 
 
 def load_saved_model(freq, models_dir='forecasting_models'):
-    """Load saved model and associated files"""
     try:
         model_path = f'{models_dir}/lstm_{freq.lower()}_model.keras'
         if not os.path.exists(model_path):
@@ -239,7 +236,6 @@ def load_saved_model(freq, models_dir='forecasting_models'):
 
 
 def train_and_save_models(models_dir='forecasting_models', verbose=True):
-    """Train and save forecasting models"""
     df = get_historical_data(verbose=verbose)
     results = {}
 
@@ -335,16 +331,6 @@ def train_and_save_models(models_dir='forecasting_models', verbose=True):
 
 
 def analyze_forecast_trend(forecast_values):
-    """
-    Analyze forecast trend to determine if it's increasing or decreasing,
-    and provide relevant insights and recommendations.
-
-    Args:
-        forecast_values: List of forecast values
-
-    Returns:
-        dict: Contains trend information, insights, and recommendations
-    """
     if not forecast_values or len(forecast_values) < 2:
         return {
             'trend': 'neutral',
@@ -391,7 +377,6 @@ def analyze_forecast_trend(forecast_values):
 
 
 def get_forecast_data(freq, verbose=False):
-    """Get forecast data in format suitable for charts"""
     try:
         # Get historical data
         df = get_historical_data(verbose=verbose)
@@ -532,16 +517,6 @@ def get_forecast_data(freq, verbose=False):
 
 
 def evaluate_model_performance(freq, test_size=0.2, verbose=False):
-    """Evaluate model performance on historical data
-
-    Args:
-        freq (str): Frequency - 'W', 'M', or 'Q'
-        test_size (float): Portion of data to use for testing
-        verbose (bool): Whether to print progress messages
-
-    Returns:
-        dict: Performance metrics
-    """
     try:
         # Get historical data
         df = get_historical_data(verbose=verbose)
@@ -651,16 +626,6 @@ def evaluate_model_performance(freq, test_size=0.2, verbose=False):
 
 
 def visualize_model_performance(freq, output_dir='forecasting_images', verbose=False):
-    """Generate and save model performance visualization
-
-    Args:
-        freq (str): Frequency - 'W', 'M', or 'Q'
-        output_dir (str): Directory to save images
-        verbose (bool): Whether to print progress messages
-
-    Returns:
-        dict: Path to generated image and performance metrics
-    """
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -741,16 +706,6 @@ def visualize_model_performance(freq, output_dir='forecasting_images', verbose=F
 
 
 def generate_forecast_visualizations(freq, output_dir='forecasting_images', verbose=False):
-    """Generate and save visualization images for forecasts
-
-    Args:
-        freq (str): Frequency - 'W', 'M', or 'Q'
-        output_dir (str): Directory to save images
-        verbose (bool): Whether to print progress messages
-
-    Returns:
-        dict: Paths to generated images
-    """
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -861,7 +816,6 @@ def generate_forecast_visualizations(freq, output_dir='forecasting_images', verb
 
 
 def generate_all_forecast_visualizations(output_dir='forecasting_images', verbose=False):
-    """Generate and save visualizations for all frequencies"""
     results = {}
     for freq in ['W', 'M', 'Q']:
         results[freq] = generate_forecast_visualizations(freq, output_dir, verbose)
@@ -869,11 +823,6 @@ def generate_all_forecast_visualizations(output_dir='forecasting_images', verbos
 
 
 def print_model_performance_metrics(verbose=False):
-    """Print performance metrics for all forecasting models
-
-    Args:
-        verbose (bool): Whether to print detailed data loading messages
-    """
     print("\n----- MODEL PERFORMANCE METRICS -----")
 
     for freq in ['W', 'M', 'Q']:

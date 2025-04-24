@@ -23,7 +23,6 @@ np.random.seed(42)
 random.seed(42)
 
 def get_recent_completed_loans():
-    """Get recent completed loans data for forecasting"""
     completed_loans = Borrower.objects.filter(
         loan_disbursement_officer_remarks__status='COMPLETED'
     ).select_related(
@@ -143,7 +142,6 @@ def train_lstm_model(X_train, y_train, X_test, y_test, epochs=100, batch_size=32
     return model, history
 
 def prepare_last_sequence(df, seq_length, feature_list):
-    """Prepare the last sequence for forecasting"""
     if len(df) < seq_length:
         return None
         
@@ -156,7 +154,6 @@ def prepare_last_sequence(df, seq_length, feature_list):
     return last_sequence
 
 def generate_future_forecast(model, last_sequence, n_steps, scaler, freq, df=None):
-    """Generate future forecasts using the loaded model"""
     if last_sequence is None:
         return pd.DataFrame()
         
@@ -218,7 +215,6 @@ def save_model(model, scaler, freq, features_list, seq_length, models_dir='app/t
         f.write(f"Features: {','.join(features_list)}")
 
 def load_saved_model(freq, models_dir='app/trained_models'):
-    """Load saved model and associated files"""
     try:
         model_path = f'{models_dir}/lstm_{freq.lower()}_model.keras'
         if not os.path.exists(model_path):
@@ -280,7 +276,6 @@ def get_combined_loan_data():
         return get_recent_completed_loans()
 
 def train_and_save_models(models_dir='app/trained_models'):
-    """Train and save forecasting models"""
     df = get_combined_loan_data()
     results = {}
     
@@ -371,16 +366,6 @@ def train_and_save_models(models_dir='app/trained_models'):
     return results
 
 def analyze_forecast_trend(forecast_values):
-    """
-    Analyze forecast trend to determine if it's increasing or decreasing,
-    and provide relevant insights and recommendations.
-    
-    Args:
-        forecast_values: List of forecast values
-    
-    Returns:
-        dict: Contains trend information, insights, and recommendations
-    """
     if not forecast_values or len(forecast_values) < 2:
         return {
             'trend': 'neutral',
@@ -426,7 +411,6 @@ def analyze_forecast_trend(forecast_values):
     }
 
 def get_forecast_data(freq):
-    """Get forecast data in format suitable for charts"""
     try:
         # Get combined data
         df = get_combined_loan_data()

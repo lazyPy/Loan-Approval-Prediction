@@ -1,16 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.db import transaction
-from django.db.models import Q, Sum, Count, F
+from django.db.models import Q, Sum
 from django.utils import timezone
-from datetime import datetime, timedelta, date
-import calendar
+from datetime import timedelta
 import json
 import os
 import re
-from decimal import Decimal, InvalidOperation, DivisionByZero
-from django import forms
 from .forms import *
 from .models import *
 from django.contrib.auth.models import User
@@ -19,19 +16,13 @@ import numpy as np
 # Add matplotlib Agg backend configuration
 import matplotlib
 matplotlib.use('Agg')  # Set non-interactive backend to avoid GUI errors
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import joblib
 from django.db import models
-import matplotlib.pyplot as plt
-from keras.models import load_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.urls import reverse
 from functools import wraps
-from PIL import Image, ImageDraw, ImageFont
 from .forecasting import get_forecast_data
 
 def role_required(allowed_roles):
@@ -525,85 +516,82 @@ def get_loan_prediction_data(loan):
         
         # 12. MonthlyAmortization (int64)
         'MonthlyAmortization': [int(float(loan.loan_details.monthly_amortization)) if hasattr(loan, 'loan_details') else 0],
+        
+        # 13. Affordability (object) - Calculate based on DTI ratio
+        'Affordability': ['Yes' if hasattr(loan, 'employment') and hasattr(loan, 'loan_details') and 
+                          loan.employment.monthly_net_income > 0 and 
+                          (float(loan.loan_details.monthly_amortization) / float(loan.employment.monthly_net_income) * 100) <= 40 
+                          else 'No'],
+        
+        # 14. CreditRiskAssessment (object)
+        'CreditRiskAssessment': [('Low Risk' if hasattr(loan, 'credit_investigator_remarks') and 
+                                loan.credit_investigator_remarks.credit_risk_assessment == 'LOW' else
+                                'Medium Risk' if hasattr(loan, 'credit_investigator_remarks') and 
+                                loan.credit_investigator_remarks.credit_risk_assessment == 'MEDIUM' else
+                                'High Risk' if hasattr(loan, 'credit_investigator_remarks') and 
+                                loan.credit_investigator_remarks.credit_risk_assessment == 'HIGH' else
+                                'Medium Risk')],
+        
+        # 15. CompleteDocuments (object)
+        'CompleteDocuments': ['Yes' if hasattr(loan, 'marketing_officer_remarks') and 
+                             loan.marketing_officer_remarks.complete_documents == 'YES' else 'No'],
+        
+        # 16. Verified (object)
+        'Verified': ['Yes' if hasattr(loan, 'credit_investigator_remarks') and 
+                    loan.credit_investigator_remarks.verified == 'YES' else 'No'],
     }
     
-    # 13. Affordability (object) - Calculate based on DTI ratio
-    if hasattr(loan, 'employment') and hasattr(loan, 'loan_details'):
-        monthly_income = float(loan.employment.monthly_net_income)
-        monthly_payment = float(loan.loan_details.monthly_amortization)
-        if monthly_income > 0:
-            dti_ratio = (monthly_payment / monthly_income) * 100
-            data['Affordability'] = ['Yes' if dti_ratio <= 40 else 'No']
-        else:
-            data['Affordability'] = ['No']
-    else:
-        data['Affordability'] = ['No']
-    
-    # 14. CreditRiskAssessment (object)
-    if hasattr(loan, 'credit_investigator_remarks'):
-        risk_mapping = {
-            'LOW': 'Low Risk',
-            'MEDIUM': 'Medium Risk',
-            'HIGH': 'High Risk'
-        }
-        data['CreditRiskAssessment'] = [risk_mapping.get(loan.credit_investigator_remarks.credit_risk_assessment, 'Medium Risk')]
-    else:
-        data['CreditRiskAssessment'] = ['Medium Risk']
-    
-    # 15. CompleteDocuments (object)
-    data['CompleteDocuments'] = ['Yes' if hasattr(loan, 'marketing_officer_remarks') and loan.marketing_officer_remarks.complete_documents == 'YES' else 'No']
-    
-    # 16. Verified (object)
-    data['Verified'] = ['Yes' if hasattr(loan, 'credit_investigator_remarks') and loan.credit_investigator_remarks.verified == 'YES' else 'No']
+    # Debug: print data for verification
+    print("\nPrepared Loan Prediction Data:")
+    for key, value in data.items():
+        print(f"{key}: {value}")
     
     return data
 
 def predict_loan_approval(loan_data):
     """Make a prediction using the trained model"""
     try:
-        # Load the model if it exists, otherwise use a simple rule-based approach
+        # Load the model
         model_path = 'app/trained_models/loan_approval_model.joblib'
         if os.path.exists(model_path):
             # Load the trained model
             model = joblib.load(model_path)
             
-            # Convert loan data to DataFrame
-            df = pd.DataFrame(loan_data)
+            # Convert loan data to DataFrame with correct column order
+            # Make sure these match exactly with what was used during training
+            expected_columns = [
+                'Age', 'ResidencyAndCitizenship', 'SourceOfFunds', 
+                'Employment Status&Nature of Business', 'VehiclePrice', 
+                'DownPayment', 'AmountApproved', 'TotalIncome', 
+                'TotalExpenses', 'NetDisposal', 'Terms', 
+                'MonthlyAmortization', 'Affordability', 
+                'CreditRiskAssessment', 'CompleteDocuments', 'Verified'
+            ]
+            
+            # Ensure all expected columns are present
+            for col in expected_columns:
+                if col not in loan_data:
+                    print(f"Missing column: {col}")
+                    loan_data[col] = None  # Add missing column with None values
+            
+            # Create DataFrame with expected columns only and in the correct order
+            df = pd.DataFrame(loan_data, columns=expected_columns)
             
             # Make prediction
             try:
                 prediction = model.predict(df)[0]
                 probability = model.predict_proba(df)[0][1]  # Probability of approval
                 result = 'Approved' if prediction == 1 else 'Declined'
+                
+                print(f"Prediction result: {result} with probability: {probability:.2f}")
                 return result, probability
             except Exception as e:
                 print(f"Error making prediction with model: {str(e)}")
-                # Fall back to rule-based approach if model prediction fails
-                return _rule_based_prediction(loan_data)
         else:
-            # Use rule-based approach if model doesn't exist
-            return _rule_based_prediction(loan_data)
+            print(f"Model not found at {model_path}")
     except Exception as e:
         print(f"Prediction error: {str(e)}")
         return "Error in prediction", 0
-
-def _rule_based_prediction(loan_data):
-    """Simple rule-based prediction as fallback"""
-    result = 'Approved'
-    
-    # Check key factors that might lead to decline
-    if loan_data['Affordability'][0] == 'No':
-        result = 'Declined'
-    elif loan_data['CreditRiskAssessment'][0] == 'High Risk':
-        result = 'Declined'
-    elif loan_data['CompleteDocuments'][0] == 'No':
-        result = 'Declined'
-    elif loan_data['Verified'][0] == 'No':
-        result = 'Declined'
-    
-    # Set probability based on decision
-    probability = 0.95 if result == 'Approved' else 0.05
-    return result, probability
 
 @login_required
 def quick_loan_prediction(request, loan_id):
@@ -611,6 +599,8 @@ def quick_loan_prediction(request, loan_id):
     if request.method == 'GET':
         try:
             loan = get_object_or_404(Borrower, loan_id=loan_id)
+            
+            # Get the loan data formatted for prediction
             loan_data = get_loan_prediction_data(loan)
             
             # Print loan data for debugging
@@ -620,6 +610,7 @@ def quick_loan_prediction(request, loan_id):
                 print(f"{key}: {value}")
             print("=====================\n")
             
+            # Make prediction using the voting classifier with polynomial features
             prediction_result, prediction_probability = predict_loan_approval(loan_data)
             
             # Print prediction results
@@ -638,11 +629,13 @@ def quick_loan_prediction(request, loan_id):
             
             # Create or update the LoanApprovalOfficerRemarks
             user_name = f"{request.user.first_name} {request.user.last_name}" or request.user.username
+            remarks = f'AI Prediction: {prediction_result} with {prediction_probability:.2f} confidence'
+            
             remarks_obj, created = LoanApprovalOfficerRemarks.objects.update_or_create(
                 loan=loan,
                 defaults={
                     'loan_approval_officer_name': user_name,
-                    'remarks': f'AI Prediction: {prediction_result} with {prediction_probability:.2f} confidence',
+                    'remarks': remarks,
                     'prediction_result': model_prediction,
                     'prediction_probability': Decimal(str(round(prediction_probability * 100, 2)))
                 }
@@ -652,14 +645,15 @@ def quick_loan_prediction(request, loan_id):
             loan_status, _ = LoanStatus.objects.get_or_create(loan=loan)
             if loan_status.status != 'PROCEED_LAO':
                 loan_status.status = 'PROCEED_LAO'
-                loan_status.remarks = 'Awaiting human review.'
+                loan_status.remarks = 'Awaiting human review after AI prediction.'
                 loan_status.save()
             
             return JsonResponse({
                 'prediction': prediction_result,
                 'probability': prediction_probability,
                 'loan_id': loan_id,
-                'saved': True
+                'saved': True,
+                'remarks': remarks
             })
         except Exception as e:
             print(f"Error in loan prediction: {str(e)}")
