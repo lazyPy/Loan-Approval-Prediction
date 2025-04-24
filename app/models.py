@@ -123,11 +123,11 @@ class Education(models.Model):
 
 class Dependent(models.Model):
     loan = models.ForeignKey(Borrower, on_delete=models.CASCADE, related_name='dependents')
-    name = models.CharField(max_length=100)
-    age = models.IntegerField()
-    school = models.CharField(max_length=200)
-    relation = models.CharField(max_length=50)
-    self_employed = models.CharField(max_length=1, choices=[('Y', 'Yes'), ('N', 'No')])
+    name = models.CharField(max_length=100, blank=True)
+    age = models.IntegerField(blank=True)
+    school = models.CharField(max_length=200, blank=True)
+    relation = models.CharField(max_length=50, blank=True)
+    self_employed = models.CharField(max_length=1, choices=[('Y', 'Yes'), ('N', 'No')], blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.relation})"
@@ -146,18 +146,18 @@ class SpouseInformation(models.Model):
     ]
 
     loan = models.OneToOneField(Borrower, on_delete=models.CASCADE, related_name='spouse')
-    first_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100, blank=True)
     middle_name = models.CharField(max_length=100, blank=True)
-    last_name = models.CharField(max_length=100)
-    relation_to_borrower = models.CharField(max_length=50)
-    civil_status = models.CharField(max_length=1, choices=CIVIL_STATUS_CHOICES)
-    date_of_birth = models.DateField()
-    education = models.CharField(max_length=20, choices=EDUCATION_CHOICES)
-    net_income = models.DecimalField(max_digits=12, decimal_places=2)
-    employer_business_name = models.CharField(max_length=200)
-    employer_contact_number = models.CharField(max_length=20)
+    last_name = models.CharField(max_length=100, blank=True)
+    relation_to_borrower = models.CharField(max_length=50, blank=True)
+    civil_status = models.CharField(max_length=1, choices=CIVIL_STATUS_CHOICES, blank=True)
+    date_of_birth = models.DateField(blank=True)
+    education = models.CharField(max_length=20, choices=EDUCATION_CHOICES, blank=True)
+    net_income = models.DecimalField(max_digits=12, decimal_places=2, blank=True, default=0)
+    employer_business_name = models.CharField(max_length=200, blank=True)
+    employer_contact_number = models.CharField(max_length=20, blank=True)
     other_income = models.CharField(max_length=200, blank=True)
-    other_monthly_income = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    other_monthly_income = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
 
 class Employment(models.Model):
     EMPLOYMENT_STATUS_CHOICES = [

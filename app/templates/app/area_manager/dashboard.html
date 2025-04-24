@@ -347,8 +347,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-{# Move the script outside of extra_js block and into the main content block #}
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Ensure the script only runs once when the DOM is fully loaded

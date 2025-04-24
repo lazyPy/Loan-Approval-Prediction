@@ -2,13 +2,20 @@
 
 {% block step_content %}
     <div class="row">
+        <!-- Notice about this being optional -->
+        <div class="col-md-12 mb-3">
+            <div class="alert alert-info">
+                <h5 class="mb-2"><i class="fas fa-info-circle"></i> This section is optional</h5>
+                <p class="mb-0">If you don't have a spouse or co-borrower, simply click the <strong>"Next Step"</strong> button at the bottom to skip this section.</p>
+            </div>
+        </div>
+        
         <!-- Personal Information -->
         <div class="col-md-6 mb-3">
-            <h4 class="mb-3">Spouse/Co-Borrower Information </h4> 
-            <p class="text-muted mb-4"><i><b>Note:</b> Click Next if Not Applicable </i>.</p>
+            <h4 class="mb-3">Spouse/Co-Borrower Information </h4>
 
             <div class="form-group mb-3">
-                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name *</label>
+                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
                 {{ form.first_name }}
                 <div class="invalid-feedback">{{ form.first_name.errors }}</div>
             </div>
@@ -18,12 +25,12 @@
                 <div class="invalid-feedback">{{ form.middle_name.errors }}</div>
             </div>
             <div class="form-group mb-3">
-                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name *</label>
+                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
                 {{ form.last_name }}
                 <div class="invalid-feedback">{{ form.last_name.errors }}</div>
             </div>
             <div class="form-group mb-3">
-                <label for="{{ form.relation_to_borrower.id_for_label }}" class="form-label">Relationship to Borrower *</label>
+                <label for="{{ form.relation_to_borrower.id_for_label }}" class="form-label">Relationship to Borrower</label>
                 {{ form.relation_to_borrower }}
                 <div class="invalid-feedback">{{ form.relation_to_borrower.errors }}</div>
             </div>
@@ -33,17 +40,17 @@
         <div class="col-md-6 mb-3">
             <h4 class="mb-3">Additional Information</h4>
             <div class="form-group mb-3">
-                <label for="{{ form.civil_status.id_for_label }}" class="form-label">Civil Status *</label>
+                <label for="{{ form.civil_status.id_for_label }}" class="form-label">Civil Status</label>
                 {{ form.civil_status }}
                 <div class="invalid-feedback">{{ form.civil_status.errors }}</div>
             </div>
             <div class="form-group mb-3">
-                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth *</label>
+                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
                 {{ form.date_of_birth }}
                 <div class="invalid-feedback">{{ form.date_of_birth.errors }}</div>
             </div>
             <div class="form-group mb-3">
-                <label for="{{ form.education.id_for_label }}" class="form-label">Education Level *</label>
+                <label for="{{ form.education.id_for_label }}" class="form-label">Education Level</label>
                 {{ form.education }}
                 <div class="invalid-feedback">{{ form.education.errors }}</div>
             </div>
@@ -53,12 +60,12 @@
         <div class="col-md-6 mb-3">
             <h4 class="mb-3">Employment Information</h4>
             <div class="form-group mb-3">
-                <label for="{{ form.employer_business_name.id_for_label }}" class="form-label">Employer/Business Name *</label>
+                <label for="{{ form.employer_business_name.id_for_label }}" class="form-label">Employer/Business Name</label>
                 {{ form.employer_business_name }}
                 <div class="invalid-feedback">{{ form.employer_business_name.errors }}</div>
             </div>
             <div class="form-group mb-3">
-                <label for="{{ form.employer_contact_number.id_for_label }}" class="form-label">Employer Contact Number *</label>
+                <label for="{{ form.employer_contact_number.id_for_label }}" class="form-label">Employer Contact Number</label>
                 {{ form.employer_contact_number }}
                 <div class="invalid-feedback">{{ form.employer_contact_number.errors }}</div>
             </div>
@@ -68,7 +75,7 @@
         <div class="col-md-6 mb-3">
             <h4 class="mb-3">Income Information</h4>
             <div class="form-group mb-3">
-                <label for="{{ form.net_income.id_for_label }}" class="form-label">Monthly Net Income *</label>
+                <label for="{{ form.net_income.id_for_label }}" class="form-label">Monthly Net Income</label>
                 <div class="input-group">
                     <span class="input-group-text">₱</span>
                     {{ form.net_income }}
@@ -99,40 +106,43 @@
         field.classList.add('form-control');
     });
 
-    // Add required attribute to required fields
-    document.querySelectorAll('label').forEach(label => {
-        if (label.textContent.includes('*')) {
-            const fieldId = label.getAttribute('for');
-            document.getElementById(fieldId).setAttribute('required', '');
+    // Remove required attribute from all fields
+    document.querySelectorAll('input, select').forEach(field => {
+        if (field.hasAttribute('required')) {
+            field.removeAttribute('required');
         }
     });
 
-    // Validate date of birth
+    // Validate date of birth only if it has a value
     const dateOfBirthField = document.getElementById('{{ form.date_of_birth.id_for_label }}');
     
-    dateOfBirthField.addEventListener('change', function() {
-        const dateOfBirth = new Date(this.value);
-        const today = new Date();
-        
-        // Calculate age
-        let age = today.getFullYear() - dateOfBirth.getFullYear();
-        const m = today.getMonth() - dateOfBirth.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
-            age--;
-        }
-        
-        // Check if birth date is valid
-        if (dateOfBirth > today) {
-            this.setCustomValidity('Birth date cannot be in the future');
-        }
-        // Check if age is at least 18
-        else if (age < 18) {
-            this.setCustomValidity('Must be at least 18 years old');
-        }
-        else {
-            this.setCustomValidity('');
-        }
-    });
+    if (dateOfBirthField) {
+        dateOfBirthField.addEventListener('change', function() {
+            if (!this.value) return; // Skip validation if empty
+            
+            const dateOfBirth = new Date(this.value);
+            const today = new Date();
+            
+            // Calculate age
+            let age = today.getFullYear() - dateOfBirth.getFullYear();
+            const m = today.getMonth() - dateOfBirth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
+                age--;
+            }
+            
+            // Check if birth date is valid
+            if (dateOfBirth > today) {
+                this.setCustomValidity('Birth date cannot be in the future');
+            }
+            // Check if age is at least 18
+            else if (age < 18) {
+                this.setCustomValidity('Must be at least 18 years old');
+            }
+            else {
+                this.setCustomValidity('');
+            }
+        });
+    }
 
     // Format currency inputs
     document.querySelectorAll('input[type="number"]').forEach(input => {

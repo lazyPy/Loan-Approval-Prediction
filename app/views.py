@@ -88,6 +88,58 @@ def loan_application_step(request, step=1):
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES)
         
+        # Special handling for spouse step (step 6) - allow it to be empty
+        if step == 6:
+            try:
+                # Check if all fields are empty (user is skipping spouse info)
+                all_empty = True
+                for field_name, field_value in request.POST.items():
+                    # Skip CSRF token and other non-form fields
+                    if field_name.startswith('csrf') or field_name in ['csrfmiddlewaretoken', 'next']:
+                        continue
+                    
+                    # If any field has a value, not all fields are empty
+                    if field_value:
+                        all_empty = False
+                        break
+                
+                # If all fields are empty, consider the form valid but store it as empty
+                if all_empty:
+                    # Store empty form data in session
+                    form_data = request.POST.dict()
+                    session_forms = request.session.get('loan_form_data', {})
+                    session_forms[str(step)] = form_data
+                    request.session['loan_form_data'] = session_forms
+                    
+                    # Redirect to next step
+                    if step < len(FORMS):
+                        return redirect('loan_application_step', step=step + 1)
+            except Exception as e:
+                # If there's any error, log it and continue with regular form validation
+                print(f"Error processing spouse form: {e}")
+                # Continue with regular form validation
+        
+        # Special handling for dependents step (step 4) - allow it to be empty or with zero dependents
+        if step == 4:
+            # Check for empty dependents_data or zero dependents
+            dependents_data = request.POST.get('dependents_data', '[]')
+            try:
+                dependents_list = json.loads(dependents_data)
+                if len(dependents_list) == 0:
+                    # Store form data in session
+                    form_data = request.POST.dict()
+                    session_forms = request.session.get('loan_form_data', {})
+                    session_forms[str(step)] = form_data
+                    request.session['loan_form_data'] = session_forms
+                    
+                    # Redirect to next step
+                    if step < len(FORMS):
+                        return redirect('loan_application_step', step=step + 1)
+            except json.JSONDecodeError:
+                # If there's an error parsing, just continue with regular form validation
+                print(f"Error parsing dependents data: Invalid JSON format")
+                # Continue with regular form validation
+        
         if form.is_valid():
             # Store form data in session
             form_data = request.POST.dict()
@@ -181,18 +233,42 @@ def loan_application_step(request, step=1):
                             dependents_data_str = step_data.get('dependents_data', '[]')
                             try:
                                 dependents_data = json.loads(dependents_data_str)
-                                # Create dependents
-                                for data in dependents_data:
-                                    Dependent.objects.create(
-                                        loan=loan,
-                                        name=data['name'],
-                                        age=data['age'],
-                                        school=data['school'],
-                                        relation=data['relation'],
-                                        self_employed=data['self_employed']
-                                    )
+                                # Only create dependents if there's actual data
+                                if dependents_data and len(dependents_data) > 0:
+                                    # Create dependents
+                                    for data in dependents_data:
+                                        # Skip empty or incomplete data
+                                        if not all(key in data and data[key] for key in ['name']):
+                                            continue
+                                            
+                                        Dependent.objects.create(
+                                            loan=loan,
+                                            name=data.get('name', ''),
+                                            age=int(data.get('age', 0)) if data.get('age') else None,
+                                            school=data.get('school', ''),
+                                            relation=data.get('relation', ''),
+                                            self_employed=data.get('self_employed', 'N')
+                                        )
                             except json.JSONDecodeError:
                                 messages.error(request, "Error processing dependents data.")
+                        
+                        # Special handling for spouse information (step 6)
+                        elif step_num == 6:
+                            # Check if form contains any actual data
+                            has_spouse_data = False
+                            for key, value in step_data.items():
+                                if key not in ['csrfmiddlewaretoken', 'next'] and value.strip():
+                                    has_spouse_data = True
+                                    break
+                            
+                            # Only create spouse record if there's actual data
+                            if has_spouse_data:
+                                form = form_class(step_data)
+                                if form.is_valid():
+                                    instance = form.save(commit=False)
+                                    instance.loan = loan
+                                    instance.save()
+                        
                         else:
                             # Standard form handling
                             form = form_class(step_data)

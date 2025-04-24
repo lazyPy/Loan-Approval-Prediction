@@ -2,15 +2,22 @@
 
 {% block step_content %}
     <div class="row">
+        <div class="col-md-12 mb-3">
+            <div class="alert alert-info">
+                <h5 class="mb-2"><i class="fas fa-info-circle"></i> This section is optional</h5>
+                <p class="mb-0">If you don't have any dependents, simply leave the number as 0 and click the <strong>"Next Step"</strong> button at the bottom.</p>
+            </div>
+        </div>
+
         <div class="col-md-12">
             <h4 class="mb-3">Dependents Information</h4>
             <p class="text-muted mb-4">Please provide information about your dependents (children, parents, or other relatives who depend on you financially).</p>
 
             <!-- Number of Dependents -->
             <div class="form-group mb-3">
-                <label for="number_of_dependents" class="form-label">Number of Dependents *</label>
-                <input type="number" id="number_of_dependents" class="form-control" min="0" value="0" required>
-                <small class="form-text text-muted">Enter the number of dependents and the form fields will appear automatically.</small>
+                <label for="number_of_dependents" class="form-label">Number of Dependents</label>
+                <input type="number" id="number_of_dependents" class="form-control" min="0" value="0">
+                <small class="form-text text-muted">Enter the number of dependents and the form fields will appear automatically. Set to 0 if you have no dependents.</small>
             </div>
 
             <!-- Dependents List -->
@@ -86,6 +93,15 @@
     }
 
     document.getElementById('stepForm').addEventListener('submit', function(e) {
+        // Get the number of dependents
+        const numDependents = parseInt(document.getElementById('number_of_dependents').value) || 0;
+        
+        // If there are no dependents, just set an empty array
+        if (numDependents === 0) {
+            document.getElementById('dependents_data').value = JSON.stringify([]);
+            return true;
+        }
+        
         // Collect data from all dependent forms
         const dependentForms = document.querySelectorAll('.dependent-form');
         const dependentsData = [];
