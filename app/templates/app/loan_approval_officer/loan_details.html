@@ -491,9 +491,6 @@
                         <h2 class="display-5 {% if prediction_result == 'Approved' %}text-success{% else %}text-danger{% endif %}">
                             {{ prediction_result }}
                         </h2>
-                        {% if prediction_probability %}
-                            <p class="lead">Confidence: {{ prediction_probability|floatformat:2 }}%</p>
-                        {% endif %}
                         <p class="mt-3">
                             <strong>Note:</strong> This is an AI-generated recommendation based on historical data and should be used as a guide only. Final decision should be made by the loan approval officer.
                         </p>
