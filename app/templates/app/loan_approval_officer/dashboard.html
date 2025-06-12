@@ -75,9 +75,6 @@
                                             {% if loan.loan_approval_officer_remarks.prediction_result %}
                                                 <span class="badge {% if loan.loan_approval_officer_remarks.prediction_result == 'APPROVED' %}bg-success{% else %}bg-danger{% endif %}">
                                                     {{ loan.loan_approval_officer_remarks.get_prediction_result_display }}
-                                                    {% if loan.loan_approval_officer_remarks.prediction_probability %}
-                                                        | {{ loan.loan_approval_officer_remarks.prediction_probability }}%
-                                                    {% endif %}
                                                 </span>
                                             {% else %}
                                                 <span class="badge bg-secondary">Not Predicted</span>
@@ -209,9 +206,8 @@
                 url: predictionUrl.replace('0', loanId),
                 method: 'GET',
                 success: function(response) {
-                    // Get the prediction result and probability
+                    // Get the prediction result
                     const prediction = response.prediction;
-                    const probability = (response.probability * 100).toFixed(2);
                     
                     // Update the Actions cell with Review button
                     const actionsCell = currentRow.find('td:nth-last-child(2)');
@@ -222,7 +218,7 @@
                     // Update the Prediction cell
                     const predictionCell = currentRow.find('td:last-child');
                     const predictionBadgeClass = prediction === 'Approved' ? 'bg-success' : 'bg-danger';
-                    const predictionBadge = `<span class="badge ${predictionBadgeClass}">${prediction} | ${probability}%</span>`;
+                    const predictionBadge = `<span class="badge ${predictionBadgeClass}">${prediction}</span>`;
                     predictionCell.html(predictionBadge);
                 },
                 error: function(error) {
